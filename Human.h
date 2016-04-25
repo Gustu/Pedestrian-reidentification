@@ -17,13 +17,13 @@ public:
     int id;
     cv::Scalar color;
     std::list<cv::Point> track;
-    bool locked;
+    int locked;
 
     Human() { }
 
     Human(int id, const cv::Point &point, cv::Scalar color) : id(id), point(point), color(color) {
         track.push_back(point);
-        locked = true;
+        locked = 4;
     }
 
     void addToTrack(cv::Point p);

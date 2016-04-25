@@ -24,9 +24,10 @@ using namespace std;
 #include "opencv2/imgproc/imgproc_c.h"
 
 using namespace cv;
+using namespace cv::ml;
 
 struct {
-    int hitThreshold = 0;
+    double hitThreshold = 0;
     Size winStride = Size(8,8);
     Size padding = Size(32,32);
     double scale = 1.05;
