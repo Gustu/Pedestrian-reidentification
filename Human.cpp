@@ -4,16 +4,4 @@
 
 #include "Human.h"
 
-void Human::addToTrack(cv::Point p) {
-    if(track.size() < MAX_TRACK) {
-        track.push_back(p);
-    } else {
-        track.pop_front();
-        track.push_back(p);
-    }
-}
-
-Human::Human() {
-
-}
 
