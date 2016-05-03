@@ -12,3 +12,8 @@ void Human::addToTrack(cv::Point p) {
         track.push_back(p);
     }
 }
+
+Human::Human() {
+
+}
+

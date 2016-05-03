@@ -1,0 +1,14 @@
+//
+// Created by hya on 03.05.16.
+//
+
+#ifndef REIDENTIFICATION_HISTDESCRIPTOR_H
+#define REIDENTIFICATION_HISTDESCRIPTOR_H
+
+
+class HistDescriptor {
+
+};
+
+
+#endif //REIDENTIFICATION_HISTDESCRIPTOR_H
