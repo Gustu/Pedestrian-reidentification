@@ -5,20 +5,28 @@
 #ifndef REIDENTIFICATION_HISTDESCRIPTOR_H
 #define REIDENTIFICATION_HISTDESCRIPTOR_H
 
+#define COMPARISON_THRESHOLD 0.5
+
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include <vector>
+
 using namespace cv;
+using namespace std;
 
 class HistDescriptor {
 public:
-    MatND hist;
+    MatND full;
+    MatND upper;
+    MatND lower;
 
     void extractFeatures(Mat &img, Rect &rect, Mat &mask);
     double compare(HistDescriptor &descriptor);
 
 private:
-    void thresholdHist(MatND &mat, double d);
+    void getHistogram(const Mat &currentImage, const Rect &rect, const Mat &m, MatND &histogram);
+    Mat equalizeIntensity(const Mat& inputImage);
 };
 
 

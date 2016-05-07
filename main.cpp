@@ -53,66 +53,28 @@ int main() {
     int frame_idx = 0;
     vector<Ptr<Human>> identified;
 
-    Mat bgImage;
-    Mat diffImage;
-    Mat maskedCurImage;
     Mat maskedCurImageMOG2;
     int morph_elem = 2;
-    int morph_size = 3;
 
     while (cap->isOpened()) {
         cap->read(curImage);
         if (curImage.empty()) {
             break;
         }
-        pMOG2->apply(curImage, fgMaskMOG2, 0);
 //        resize(curImage, curImage, Size(0,0), 2, 2, INTER_LANCZOS4);
-        if (bgImage.empty()) {
-            curImage.copyTo(bgImage);
-        }
-        absdiff(bgImage, curImage, diffImage);
-        Mat mask = Mat::zeros(diffImage.rows, diffImage.cols, CV_8UC1);
-
-
-        float threshold = 10.0f;
-        float dist;
-        for (int j = 0; j < diffImage.rows; ++j) {
-            for (int i = 0; i < diffImage.cols; ++i) {
-                cv::Vec3b pix = diffImage.at<cv::Vec3b>(j, i);
-
-                dist = (pix[0] * pix[0] + pix[1] * pix[1] + pix[2] * pix[2]);
-                dist = sqrt(dist);
-
-                if (dist > threshold) {
-                    mask.at<uchar>(j, i) = 255;
-                }
-
-            }
-        }
+        pMOG2->apply(curImage, fgMaskMOG2, 0);
 
         // Since MORPH_X : 2,3,4,5 and 6
-        int operation = 2;
 
-        /// Apply the specified morphology operation
-        morphologyEx(mask, mask, operation, getStructuringElement(morph_elem, Size(2 * morph_size + 1, 2 * morph_size + 1),
-                                                                  Point(morph_size, morph_size)));
-
-        medianBlur(fgMaskMOG2, fgMaskMOG2, 2*2 + 1);
+        medianBlur(fgMaskMOG2, fgMaskMOG2, 2 * 2 + 1);
 
         int morph_size2 = 3;
 
-        morphologyEx(fgMaskMOG2, fgMaskMOG2, 3, getStructuringElement(morph_elem, Size(2 * morph_size2 + 1, 2 * morph_size2 + 1),
-                                                                  Point(morph_size2, morph_size2)));
-
-        int dilation_size = 3;
-
-        dilate(mask, mask, getStructuringElement(0,
-                                                 Size(2 * dilation_size + 1, 2 * dilation_size + 1),
-                                                 Point(dilation_size, dilation_size)));
+        morphologyEx(fgMaskMOG2, fgMaskMOG2, 3,
+                     getStructuringElement(morph_elem, Size(2 * morph_size2 + 1, 2 * morph_size2 + 1),
+                                           Point(morph_size2, morph_size2)));
 
 
-        maskedCurImage.release();
-        curImage.copyTo(maskedCurImage, mask);
         maskedCurImageMOG2.release();
         curImage.copyTo(maskedCurImageMOG2, fgMaskMOG2);
 
@@ -127,16 +89,19 @@ int main() {
                 Ptr<Human> human = new Human();
                 Rect trimmed = trimRect(rect);
                 human->descriptor.extractFeatures(curImage, trimmed, fgMaskMOG2);
-                bool matched = false;
+                vector<Ptr<Human>>::iterator best = identified.end();
+                double best_comparison = 0;
                 for (vector<Ptr<Human>>::iterator it = identified.begin(); it != identified.end(); it++) {
                     double comparison = 1 - human->descriptor.compare(((*it)->descriptor));
-                    if (comparison > 0.5) {
-                        matched = true;
-                        (*it)->point = Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
-                        break;
+                    if (comparison > COMPARISON_THRESHOLD && best_comparison < comparison) {
+                        best_comparison = comparison;
+                        best = it;
                     }
                 }
-                if (!matched) {
+                if(best != identified.end()) {
+                    (*best)->point = Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
+                    (*best)->descriptor = human->descriptor;
+                } else {
                     human->id = id++;
                     human->point = Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
                     human->color = randColor();
@@ -145,8 +110,7 @@ int main() {
             }
         }
 
-
-//        draw_detections(curImage, foundLocations);
+        draw_detections(maskedCurImageMOG2, foundLocations);
         draw_identified(maskedCurImageMOG2, identified);
 
         imshow("1", maskedCurImageMOG2);
