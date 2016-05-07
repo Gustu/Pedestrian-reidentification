@@ -6,6 +6,7 @@
 #define REIDENTIFICATION_MAIN_H
 
 
+static const char *const VIDEO_PATH = "/home/hya/workspace/reidentification/video/campus4-c0.avi";
 using namespace std;
 
 #include "opencv2/core/core.hpp"

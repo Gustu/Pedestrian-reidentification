@@ -45,7 +45,7 @@ int main() {
     hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
     pMOG2 = createBackgroundSubtractorMOG2(); //MOG2 approach
 
-    VideoCapture *cap = new VideoCapture("/home/hya/workspace/reidentification/video/campus4-c0.avi");
+    VideoCapture *cap = new VideoCapture(VIDEO_PATH);
     Mat gray, curImage;
     vector<Rect> foundLocations;
     vector<double> foundWeights;
