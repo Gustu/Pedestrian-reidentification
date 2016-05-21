@@ -2,17 +2,29 @@
 // Created by hya on 03.05.16.
 //
 
+#include <iostream>
 #include "HistDescriptor.h"
 
 void HistDescriptor::extractFeatures(Mat &currentImage, Rect &rect, Mat &m) {
-    Rect up(rect.x, rect.y, rect.width, rect.height/2);
-    Rect low(rect.x, rect.y + rect.height/2, rect.width, rect.height/2);
-    getHistogram(currentImage, rect, m, full);
-    getHistogram(currentImage, up, m, upper);
-    getHistogram(currentImage, low, m, lower);
+    full = getHistogram(currentImage, rect, m);
+
+    int x = rect.x;
+    int y = rect.y;
+    int dividedHeight = rect.height / HOG_HEIGHT_DIVISION;
+    int dividedWidth = rect.width / HOG_WIDTH_DIVISION;
+    Rect window;
+    window.width = dividedWidth;
+    window.height = dividedHeight;
+    for (int i = 0; i < HOG_HEIGHT_DIVISION; i++) {
+        for (int j = 0; j < HOG_WIDTH_DIVISION; j++) {
+            window.x = x + j * dividedWidth;
+            window.y = y + i * dividedHeight;
+            partials.push_back(getHistogram(currentImage, window, m));
+        }
+    }
 }
 
-void HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, const Mat &m, MatND &histogram) {
+MatND HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, const Mat &m) {
     Mat img(currentImage, rect);
     Mat mask(m, rect);
     Mat hsv;
@@ -20,7 +32,7 @@ void HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, con
 
     // Quantize the hue to 30 levels
     // and the saturation to 32 levels
-    int hbins = 35, sbins = 32;
+    int hbins = 20, sbins = 30;
     int histSize[] = {hbins, sbins};
     // hue varies from 0 to 179, see cvtColor
     float hranges[] = {0, 180};
@@ -34,38 +46,39 @@ void HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, con
 
     calcHist(&hsv, 1, channels, mask, hist, 2, histSize, ranges, true, false);
     equalizeIntensity(hist);
-    histogram = hist;
+    return hist;
 }
 
 double HistDescriptor::compare(HistDescriptor &descriptor) {
-    double full_compare = compareHist(full, descriptor.full, HISTCMP_BHATTACHARYYA);
-    if(full_compare > COMPARISON_THRESHOLD) {
-        double lower_compare = compareHist(lower, descriptor.lower, HISTCMP_BHATTACHARYYA);
-        double upper_compare = compareHist(upper, descriptor.upper, HISTCMP_BHATTACHARYYA);
+    double full_compare = 1 - compareHist(full, descriptor.full, HISTCMP_BHATTACHARYYA);
 
-        return (lower_compare + upper_compare)/2;
+    if (full_compare > COMPARISON_THRESHOLD) {
+        double sum = 0.0;
+        for (int i = 0; i < HOG_WIDTH_DIVISION * HOG_HEIGHT_DIVISION; i++) {
+            sum += 1 - compareHist(partials[i], descriptor.partials[i], HISTCMP_BHATTACHARYYA);
+        }
+        return (full_compare + sum) / (HOG_WIDTH_DIVISION * HOG_HEIGHT_DIVISION + 1);
     }
 
     return full_compare;
 }
 
 Mat HistDescriptor::equalizeIntensity(const Mat &inputImage) {
-    if(inputImage.channels() >= 3)
-    {
+    if (inputImage.channels() >= 3) {
         Mat ycrcb;
 
         cvtColor(inputImage, ycrcb, CV_HSV2BGR);
-        cvtColor(ycrcb,ycrcb,CV_BGR2YCrCb);
+        cvtColor(ycrcb, ycrcb, CV_BGR2YCrCb);
 
         vector<Mat> channels;
-        split(ycrcb,channels);
+        split(ycrcb, channels);
 
         equalizeHist(channels[0], channels[0]);
 
         Mat result;
-        merge(channels,ycrcb);
+        merge(channels, ycrcb);
 
-        cvtColor(ycrcb,result,CV_YCrCb2BGR);
+        cvtColor(ycrcb, result, CV_YCrCb2BGR);
 
         return result;
     }

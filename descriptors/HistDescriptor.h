@@ -6,11 +6,15 @@
 #define REIDENTIFICATION_HISTDESCRIPTOR_H
 
 #define COMPARISON_THRESHOLD 0.5
+#define HISTORY 3
 
+static const int HOG_HEIGHT_DIVISION = 2;
+
+static const int HOG_WIDTH_DIVISION = 1;
+
+#include <list>
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-
-#include <vector>
 
 using namespace cv;
 using namespace std;
@@ -18,15 +22,21 @@ using namespace std;
 class HistDescriptor {
 public:
     MatND full;
-    MatND upper;
-    MatND lower;
+
+    vector<MatND> partials;
+
+    int counter;
+
+    HistDescriptor() { counter = 0; };
 
     void extractFeatures(Mat &img, Rect &rect, Mat &mask);
+
     double compare(HistDescriptor &descriptor);
 
 private:
-    void getHistogram(const Mat &currentImage, const Rect &rect, const Mat &m, MatND &histogram);
-    Mat equalizeIntensity(const Mat& inputImage);
+    MatND getHistogram(const Mat &currentImage, const Rect &rect, const Mat &m);
+
+    Mat equalizeIntensity(const Mat &inputImage);
 };
 
 

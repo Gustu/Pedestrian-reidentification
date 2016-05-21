@@ -6,7 +6,8 @@
 #define REIDENTIFICATION_MAIN_H
 
 
-static const char *const VIDEO_PATH = "/home/hya/workspace/reidentification/video/campus4-c0.avi";
+static const char *const VIDEO_PATH = "video/campus4-c1.avi";
+static const char *const winname = "Press q to exit";
 using namespace std;
 
 #include "opencv2/core/core.hpp"
@@ -36,18 +37,5 @@ struct {
     double finalThreshold = 2.0;
     bool useMeanShift = false;
 } hogParams;
-
-struct optical_flow_parameters {
-    Size winSize = Size(15,15);
-    int maxLevel = 2;
-    TermCriteria termcrit = TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 20, 0.03);
-} opticalFlowParameters;
-
-struct feature_params {
-    int maxCorners = 500;
-    int qualitLevel = 0.3;
-    int minDistance = 7;
-    int blockSize = 7;
-} featureParams;
 
 #endif //REIDENTIFICATION_MAIN_H
