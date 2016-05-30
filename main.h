@@ -6,7 +6,7 @@
 #define REIDENTIFICATION_MAIN_H
 
 
-static const char *const VIDEO_PATH = "video/campus4-c1.avi";
+static const char *const VIDEO_PATH = "video/campus4-c0.avi";
 static const char *const winname = "Press q to exit";
 using namespace std;
 

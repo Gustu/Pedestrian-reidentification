@@ -14,18 +14,33 @@
 
 class Human {
 public:
-    Human() : lost(false) {};
+    Human() : lost(false), outOfWindow(false), collision(-1), hist(0) { };
 
     HistDescriptor histDescriptor;
     GaborDescriptor gaborDescriptor;
     Kalman kalman;
     OpticalFlow opticalFlow;
 
-    cv::Point point;
+    Rect boudingBox;
+    Point point;
+    Point predicted;
     int id;
-    cv::Scalar color;
+    Scalar color;
+
+    bool collision;
+    bool reinit;
+
+    Point before;
+    Point after;
+    Point move;
+    int hist;
 
     bool lost;
+    bool outOfWindow;
+
+    void predictHumanPosition();
+
+    void calcBeforeAfter(Point p);
 };
 
 

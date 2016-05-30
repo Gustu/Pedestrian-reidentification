@@ -7,6 +7,8 @@
 
 
 #include <cv.hpp>
+#include <list>
+#include <queue>
 #include "opencv2/video/tracking.hpp"
 
 using namespace cv;

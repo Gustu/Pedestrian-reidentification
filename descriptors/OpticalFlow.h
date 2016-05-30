@@ -18,14 +18,25 @@ public:
     Size winSize;
     const int MAX_COUNT = 500;
 
+    Point centroid;
+    bool blocked;
+    Rect boundingBox;
+
     void resetNotFoundPoints(vector<uchar> vector1, Point lastPoint);
 
     OpticalFlow();
 
-    void calculate(Mat &prev, Mat &img, Point lastPoint);
+    void calculate(Mat &prev, Mat &img, Point lastPoint, int lastWidth, int lastHeight);
     void getOpticalFlowPoints(const Rect &rect, Mat &img);
     void drawPoints(Mat img, Scalar scalar_);
     void swapPoints();
+
+    void calculateWithCollision(Point move);
+
+private:
+    void calculateRegion();
+
+    void movePoints(int i, int i1);
 };
 
 

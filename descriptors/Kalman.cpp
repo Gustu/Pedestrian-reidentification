@@ -38,7 +38,7 @@ Kalman::Kalman() {
     kf->measurementMatrix.at<float>(16) = 1.0f;
     kf->measurementMatrix.at<float>(23) = 1.0f;
 
-    // Process Noise Covariance Matrix Q
+    // Process Noise Covariance Matrix Qhttps://scontent-waw1-1.xx.fbcdn.net/v/t1.0-0/p206x206/25826_374708229561_24411_n.jpg?oh=73088d1ade86fadf91d4e4c41937141c&oe=57DC73BD
     // [ Ex   0   0     0     0    0  ]
     // [ 0    Ey  0     0     0    0  ]
     // [ 0    0   Ev_x  0     0    0  ]
@@ -73,8 +73,8 @@ void Kalman::predict(double dt) {
 }
 
 void Kalman::drawPredicted(Mat &img) {
-    cv::circle(img, center, 2, CV_RGB(255,0,0), -1);
-    cv::rectangle(img, predRect, CV_RGB(255,0,0), 2);
+    circle(img, center, 2, CV_RGB(255,0,0), -1);
+    rectangle(img, predRect, CV_RGB(255,0,0), 2);
 }
 
 void Kalman::update(Rect &rect) {
