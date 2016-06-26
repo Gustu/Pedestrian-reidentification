@@ -4,12 +4,15 @@
 
 #include "Kalman.h"
 
+
+
 Kalman::Kalman() {
     stateSize = 6;
     measSize = 4;
     contrSize = 0;
     type = CV_32F;
     found = false;
+    lostTracking = false;
     notFoundCount = 0;
     kf = new KalmanFilter(stateSize, measSize, contrSize, type);
     state = Mat(stateSize, 1, type);
@@ -111,6 +114,14 @@ void Kalman::resetCounter() {
     notFoundCount = 0;
 }
 
+void Kalman::checkIfLostTracking(Mat &img) {
+    if(predRect.area() > 0 && predRect.x >= 0 && predRect.x + predRect.width <= img.cols && predRect.y >= 0 && predRect.y + predRect.height <= img.rows) {
+        Mat trimmed(img, predRect);
+        int nonZero = countNonZero(trimmed);
+        double percentage = (double)nonZero / (trimmed.cols * trimmed.rows);
+        lostTracking = percentage < THRESH_LOST_TRACKING;
+    }
+}
 
 
 

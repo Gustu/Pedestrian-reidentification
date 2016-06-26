@@ -11,6 +11,8 @@
 #include <queue>
 #include "opencv2/video/tracking.hpp"
 
+#define THRESH_LOST_TRACKING 0.2
+
 using namespace cv;
 using namespace std;
 
@@ -30,6 +32,8 @@ public:
     Rect predRect;
     Point center;
 
+    bool lostTracking;
+
     Kalman();
 
     void predict(double dt);
@@ -39,6 +43,8 @@ public:
     void update(Rect &rect);
 
     void resetCounter();
+
+    void checkIfLostTracking(Mat &img);
 };
 
 

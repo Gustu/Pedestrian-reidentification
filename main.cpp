@@ -33,9 +33,9 @@ void init();
 
 void drawing();
 
-void updateIdentified(const Rect &rect, const Ptr<Human> &human, const Ptr<Human> &best);
+void updateIdentified(Rect &trimmed, Ptr<Human> &human, Ptr<Human> &best);
 
-void newIdentified(const Rect &rect, Ptr<Human> &human);
+void newIdentified(Rect &rect, Ptr<Human> &human);
 
 Ptr<Human> getBestMatch(Ptr<Human> human, Rect rect_);
 
@@ -63,11 +63,30 @@ void calcCollisions(vector<Ptr<Human>> identified);
 
 void calcBeforeAfter(vector<Ptr<Human>> identified);
 
+bool isGlitch(Ptr<Human> ptr, Ptr<Human> ptr1);
+
+GtkWidget *createWindow();
+
 cv::Scalar randColor() {
     return Scalar(rand() % 256, rand() % 256, rand() % 256);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    GtkWidget * window;
+
+
+    gtk_set_locale();
+    gtk_init( & argc, & argv );
+
+    window = createWindow();
+    gtk_widget_show( window );
+
+    gtk_main();
+
+    return 0;
+}
+
+void start() {
     init();
     int frame_idx = 0;
     while (cap->isOpened()) {
@@ -86,8 +105,26 @@ int main() {
     }
 
     delete cap;
+}
 
-    return 0;
+GtkWidget *createWindow() {
+    GtkWidget *window;
+    GtkBuilder *builder;
+    GError *error = NULL;
+
+    builder = gtk_builder_new();
+    if (!gtk_builder_add_from_file(builder, UI_FILE, &error)) {
+        g_warning("Can not open builder file: %s", error->message);
+        g_error_free(error);
+    }
+
+    gtk_builder_connect_signals(builder, NULL);
+
+    window = GTK_WIDGET(gtk_builder_get_object(builder, "window1"));
+
+    g_object_unref(builder);
+
+    return window;
 }
 
 bool exit() {
@@ -121,14 +158,14 @@ void swapPoints() {
 
 void markAllAsLost() {
     for (Ptr<Human> h : identified) {
-        h->lost = true;
+        h->lostTracking = true;
     }
 }
 
 void calcOpticalFlows() {
     for (Ptr<Human> h : identified) {
         if (!h->collision && !h->reinit) {
-            h->opticalFlow.calculate(prevMaskedGray, maskedGray, h->point, h->boudingBox.width, h->boudingBox.height);
+            h->opticalFlow.calculate(prevMaskedGray, maskedGray, h->boudingBox, h->outOfWindow);
         } else if (!h->collision && h->reinit) {
             h->opticalFlow.getOpticalFlowPoints(h->kalman.predRect, maskedGray);
             h->reinit = false;
@@ -136,6 +173,11 @@ void calcOpticalFlows() {
             h->opticalFlow.calculateWithCollision(h->move);
         }
         h->kalman.update(h->opticalFlow.boundingBox);
+        h->kalman.checkIfLostTracking(maskedGray);
+        if (h->kalman.lostTracking) {
+            h->opticalFlow.reset();
+            h->kalman.lostTracking = false;
+        }
     }
 }
 
@@ -144,14 +186,14 @@ void processKalmans(int width, int height) {
     for (Ptr<Human> h : identified) {
         if (h->kalman.notFoundCount > 100) {
             h->kalman.found = false;
-//            h->opticalFlow.blocked = true;
-            h->outOfWindow = true;
+            h->opticalFlow.blocked = true;
         }
-        if (h->lost) h->kalman.notFoundCount++;
+        if (h->lostTracking) h->kalman.notFoundCount++;
         h->kalman.predict(dt);
         if (h->kalman.center.y < 0 || h->kalman.center.y > height || h->kalman.center.x < 0 ||
             h->kalman.center.x > width) {
             h->outOfWindow = true;
+            h->opticalFlow.points->clear();
         }
         h->predictHumanPosition();
     }
@@ -164,7 +206,6 @@ void getDt() {
 }
 
 void applyAlgorithm(int frameId) {
-    cout << dt << endl;
     calcBeforeAfter(identified);
     calcCollisions(identified);
     calcOpticalFlows();
@@ -176,13 +217,10 @@ void applyAlgorithm(int frameId) {
                              hogParams.scale, hogParams.finalThreshold, hogParams.useMeanShift);
         for (int i = 0; i < foundLocations.size(); i++) {
             Rect trimmed = trimRect(foundLocations[i]);
-
             Ptr<Human> human = new Human();
             Ptr<Human> best = getBestMatch(human, trimmed);
             if (!best.empty()) {
                 updateIdentified(trimmed, human, best);
-                best->kalman.resetCounter();
-                best->kalman.update(trimmed);
             } else {
                 newIdentified(trimmed, human);
             }
@@ -201,8 +239,8 @@ void applyAlgorithm(int frameId) {
 }
 
 void calcBeforeAfter(vector<Ptr<Human>> identified) {
-    for(Ptr<Human> h : identified) {
-        h->calcBeforeAfter(h->kalman.center);
+    for (Ptr<Human> h : identified) {
+        h->calcBeforeAfter(h->point);
     }
 }
 
@@ -217,10 +255,23 @@ Ptr<Human> getBestMatch(Ptr<Human> human, Rect rect) {
             bestHuman = *it;
         }
     }
-    return bestHuman;
+
+    if (bestHuman.empty() || isGlitch(human, bestHuman)) {
+        return Ptr<Human>();
+    }
+    else {
+        return bestHuman;
+    }
 }
 
-void newIdentified(const Rect &rect, Ptr<Human> &human) {
+bool isGlitch(Ptr<Human> human, Ptr<Human> bestMatch) {
+    double dist = sqrt((human->point.x - bestMatch->point.x) ^ 2 + (human->point.y - bestMatch->point.y) ^ 2);
+    return (bestMatch->move.x == 0 && bestMatch->move.y == 0) ?
+           false :
+           dist > 30.0 * sqrt((float) (bestMatch->move.x ^ 2 + bestMatch->move.y ^ 2));
+}
+
+void newIdentified(Rect &rect, Ptr<Human> &human) {
     human->id = id++;
     human->point = Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
     human->color = randColor();
@@ -230,28 +281,36 @@ void newIdentified(const Rect &rect, Ptr<Human> &human) {
 }
 
 
-void updateIdentified(const Rect &rect, const Ptr<Human> &human,
-                      const Ptr<Human> &best) {
-    //                    cout << "Best comparison for " << (*best)->id << " | " << best_comparison << endl;
-    best->lost = false;
+void updateIdentified(Rect &trimmed, Ptr<Human> &human,
+                      Ptr<Human> &best) {
+
     best->opticalFlow.blocked = false;
+    best->boudingBox = trimmed;
+    best->lostTracking = false;
     best->outOfWindow = false;
-    best->boudingBox = rect;
-    if (best->outOfWindow) {
-        best->opticalFlow.points->clear();
-        best->opticalFlow.getOpticalFlowPoints(rect, maskedGray);
+
+    if (best->opticalFlow.points->empty()) {
+        best->opticalFlow.getOpticalFlowPoints(trimmed, maskedGray);
     }
-    best->point = Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
+
+    best->point = Point(trimmed.x + trimmed.width / 2, trimmed.y + trimmed.height / 2);
     if (++best->histDescriptor.counter > HISTORY) {
         best->histDescriptor = human->histDescriptor;
         best->gaborDescriptor = human->gaborDescriptor;
         best->histDescriptor.counter = 0;
     }
+
+    if (!best->opticalFlow.centroid.inside(best->boudingBox)) {
+        best->opticalFlow.getOpticalFlowPoints(best->boudingBox, maskedGray);
+    }
+
+    best->kalman.resetCounter();
+    best->kalman.update(trimmed);
 }
 
 void drawing() {
-//    draw_detections(drawingImage, foundLocations);
-//    draw_identified(drawingImage, identified);
+    draw_detections(drawingImage, foundLocations);
+    draw_identified(drawingImage, identified);
     draw_kalmans(drawingImage, identified);
     draw_points(drawingImage, identified);
 
@@ -262,14 +321,16 @@ void drawing() {
 void calcCollisions(vector<Ptr<Human>> identified) {
     for_each(identified.begin(), identified.end(), [](Ptr<Human> &human) { human->collision = false; });
     for (Ptr<Human> h1 : identified) {
-        for (Ptr<Human> h2 : identified) {
-            if (h1->id != h2->id && !h1->outOfWindow && !h2->outOfWindow) {
-                Rect intersect = h1->boudingBox & h2->boudingBox;
-                if (intersect.width > 0 && intersect.height > 0) {
-                    h1->collision = true;
-                    h2->collision = true;
-                    h1->reinit = true;
-                    h2->reinit = true;
+        if (!h1->outOfWindow) {
+            for (Ptr<Human> h2 : identified) {
+                if (h1->id != h2->id && !h2->outOfWindow) {
+                    Rect intersect = h1->kalman.predRect & h2->kalman.predRect;
+                    if (intersect.width > 0 && intersect.height > 0) {
+                        h1->collision = true;
+                        h2->collision = true;
+                        h1->reinit = true;
+                        h2->reinit = true;
+                    }
                 }
             }
         }
@@ -286,7 +347,7 @@ void draw_kalmans(Mat img, vector<Ptr<Human>> identified) {
 
 void draw_points(Mat img, vector<Ptr<Human>> identified) {
     for (Ptr<Human> h : identified) {
-        h->opticalFlow.drawPoints(drawingImage, h->color);
+        h->opticalFlow.drawPoints(img, h->color);
     }
 }
 

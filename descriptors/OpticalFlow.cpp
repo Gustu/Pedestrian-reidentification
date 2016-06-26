@@ -4,13 +4,18 @@
 
 #include "OpticalFlow.h"
 
-void OpticalFlow::calculate(Mat &prev, Mat &img, Point lastPoint, int lastWidth, int lastHeight) {
+void OpticalFlow::calculate(Mat prev, Mat img, Rect lastRect, bool clear) {
+    if(clear) {
+        boundingBox.width = 0;
+        boundingBox.height = 0;
+        points->clear();
+    }
     if (!points[0].empty() && !blocked) {
         vector<uchar> status;
         vector<float> err;
         calcOpticalFlowPyrLK(prev, img, points[0], points[1], status, err, winSize, 5, termcrit, 0, 0.001);
-        resetNotFoundPoints(status, lastPoint);
-        movePoints(lastWidth, lastHeight);
+        resetNotFoundPoints(status, lastRect);
+        movePoints(lastRect.width, lastRect.height);
         calculateRegion();
     }
 }
@@ -22,24 +27,29 @@ OpticalFlow::OpticalFlow() {
     blocked = false;
 }
 
-void OpticalFlow::resetNotFoundPoints(vector<uchar> status, Point lastPoint) {
+void OpticalFlow::resetNotFoundPoints(vector<uchar> status, Rect lastRect) {
     if (points[0].size() == points[1].size() && points[0].size() == status.size()) {
         for (int i = 0; i < points->size(); i++) {
             if (status[i] == 0) {
-                points[0][i] = lastPoint;
-                points[1][i] = lastPoint;
+                Point randed(lastRect.x + rand()%lastRect.width, lastRect.y + rand()%lastRect.height);
+                points[0][i] = randed;
+                points[1][i] = randed;
             }
         }
     }
 }
 
 void OpticalFlow::getOpticalFlowPoints(const Rect &rect, Mat &gray) {
-    Mat grayTrimmed(gray, rect);
-    goodFeaturesToTrack(grayTrimmed, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 0, 0.04);
-    if(rect.width > subPixWinSize.width*2 + 5 && rect.height > subPixWinSize.height*2 + 5)cornerSubPix(grayTrimmed, points[1], subPixWinSize, Size(-1, -1), termcrit);
-    for (Point2f &p : points[1]) {
-        p.x += rect.x; // project points to image
-        p.y += rect.y; // project points to image
+    if(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width < gray.cols && rect.y + rect.height < gray.rows) {
+        Mat grayTrimmed(gray, rect);
+        goodFeaturesToTrack(grayTrimmed, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 0, 0.04);
+        if(!points[1].empty()) {
+            if(rect.width > subPixWinSize.width*2 + 5 && rect.height > subPixWinSize.height*2 + 5)cornerSubPix(grayTrimmed, points[1], subPixWinSize, Size(-1, -1), termcrit);
+            for (Point2f &p : points[1]) {
+                p.x += rect.x; // project points to image
+                p.y += rect.y; // project points to image
+            }
+        }
     }
 }
 
@@ -76,10 +86,8 @@ void OpticalFlow::calculateRegion() {
 void OpticalFlow::movePoints(int lastWidth, int lastHeight) {
     if (centroid.x != 0 && centroid.y != 0) {
         int maxXDistance = lastWidth / 2;
-//        int maxYDistance = lastHeight / 2;
         for (Point2f &p : points[1]) {
             int xDistance = centroid.x - p.x;
-//            int yDistance = centroid.y - p.y;
             if (abs(xDistance) > maxXDistance) {
                 if (xDistance > 0) {
                     p.x -= maxXDistance - abs(xDistance);
@@ -87,13 +95,6 @@ void OpticalFlow::movePoints(int lastWidth, int lastHeight) {
                     p.x += maxXDistance - abs(xDistance);
                 }
             }
-//            if (abs(yDistance) > maxYDistance) {
-//                if (yDistance > 0) {
-//                    p.y -= maxYDistance - abs(yDistance);
-//                } else {
-//                    p.y += maxYDistance - abs(yDistance);
-//                }
-//            }
         }
     }
 }
@@ -112,6 +113,12 @@ void OpticalFlow::calculateWithCollision(Point move) {
 
     boundingBox = boundingRect(points[0]);
 }
+
+void OpticalFlow::reset() {
+    points->clear();
+}
+
+
 
 
 

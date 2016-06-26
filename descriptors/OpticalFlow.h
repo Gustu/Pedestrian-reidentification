@@ -22,16 +22,17 @@ public:
     bool blocked;
     Rect boundingBox;
 
-    void resetNotFoundPoints(vector<uchar> vector1, Point lastPoint);
+    void resetNotFoundPoints(vector<uchar> status, Rect lastRect);
 
     OpticalFlow();
 
-    void calculate(Mat &prev, Mat &img, Point lastPoint, int lastWidth, int lastHeight);
+    void calculate(Mat prev, Mat img, Rect lastRect, bool clear);
     void getOpticalFlowPoints(const Rect &rect, Mat &img);
     void drawPoints(Mat img, Scalar scalar_);
     void swapPoints();
 
     void calculateWithCollision(Point move);
+    void reset();
 
 private:
     void calculateRegion();
