@@ -4,8 +4,13 @@
 
 #include "UIFunctions.h"
 
+ReidentificationAlg *r;
+char *fileName;
+
 extern "C" G_MODULE_EXPORT void on_startButton_clicked(GtkButton *button, gpointer user_data) {
-    cout << "lol" << endl;
+    r = new ReidentificationAlg();
+    r->setFileName(fileName);
+    r->start();
 }
 
 extern "C" G_MODULE_EXPORT void on_fileChooserButton_file_set(GtkFileChooser *fileChooser) {

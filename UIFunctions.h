@@ -7,10 +7,13 @@
 
 #include <gtk/gtk.h>
 #include <iostream>
+#include "ReidentificationAlg.h"
 
 using namespace std;
 
-char *fileName;
+extern ReidentificationAlg *r;
+
+extern char *fileName;
 
 extern "C" G_MODULE_EXPORT void on_startButton_clicked(GtkButton *button, gpointer user_data);
 extern "C" G_MODULE_EXPORT void on_fileChooserButton_file_set(GtkFileChooser *fileChooser);
