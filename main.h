@@ -11,5 +11,6 @@ using namespace std;
 
 #include <gtk/gtk.h>
 #include "UIFunctions.h"
+#include "HOGTrainer.h"
 
 #endif //REIDENTIFICATION_MAIN_H

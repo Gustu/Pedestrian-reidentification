@@ -5,6 +5,10 @@
 #ifndef REIDENTIFICATION_OPTICALFLOW_H
 #define REIDENTIFICATION_OPTICALFLOW_H
 
+#define LOST_LIMIT 0.5
+
+#define NOT_FOUND_POINTS 0.9
+
 #include <cv.hpp>
 
 using namespace cv;
@@ -33,6 +37,7 @@ public:
 
     void calculateWithCollision(Point move);
     void reset();
+    bool checkIfLostTracking(Mat &img);
 
 private:
     void calculateRegion();

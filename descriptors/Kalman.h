@@ -43,8 +43,6 @@ public:
     void update(Rect &rect);
 
     void resetCounter();
-
-    void checkIfLostTracking(Mat &img);
 };
 
 

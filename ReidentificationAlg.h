@@ -40,6 +40,11 @@ struct {
 
 class ReidentificationAlg {
 public:
+    ReidentificationAlg();
+
+    ReidentificationAlg(char *fileName);
+
+    bool exiting;
     char *fileName;
     int detect_interval = 5;
     int id = 0;
@@ -103,6 +108,8 @@ public:
     bool isGlitch(Ptr<Human> ptr, Ptr<Human> ptr1);
 
     void start();
+
+    void stop();
 
     Scalar randColor();
 

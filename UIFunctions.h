@@ -9,13 +9,18 @@
 #include <iostream>
 #include "ReidentificationAlg.h"
 
+
 using namespace std;
 
+extern char *fileNameUI;
 extern ReidentificationAlg *r;
-
-extern char *fileName;
+extern bool started;
 
 extern "C" G_MODULE_EXPORT void on_startButton_clicked(GtkButton *button, gpointer user_data);
 extern "C" G_MODULE_EXPORT void on_fileChooserButton_file_set(GtkFileChooser *fileChooser);
+extern "C" G_MODULE_EXPORT void on_stopButton_clicked(GtkButton *button, gpointer user_data);
+extern "C" G_MODULE_EXPORT void on_window1_delete_event();
+
+void createThread();
 
 #endif //REIDENTIFICATION_UIFUNCTIONS_H

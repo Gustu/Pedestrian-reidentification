@@ -1,14 +1,30 @@
 #include "main.h"
 
+
+//#define DEMO
+#define TRAIN_HOG
+//#define DEBUG
+
 GtkWidget *createWindow();
+ReidentificationAlg reidentificationAlg;
 
 int main(int argc, char *argv[]) {
+#if defined DEMO
     GtkWidget * window;
     gtk_set_locale();
     gtk_init( & argc, & argv );
     window = createWindow();
     gtk_widget_show( window );
     gtk_main();
+#elif defined TRAIN_HOG
+    HOGTrainer *hogTrainer = new HOGTrainer("hog2/pos/", "hog2/pos.list", "hog2/neg/", "hog2/neg.list", Size(64, 128));
+    hogTrainer->train();
+    hogTrainer->testIt("video/campus4-c0.avi");
+#elif defined DEBUG
+    reidentificationAlg.setFileName((char *) "video/campus4-c0.avi");
+    reidentificationAlg.init();
+    reidentificationAlg.start();
+#endif
     return 0;
 }
 

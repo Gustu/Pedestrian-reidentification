@@ -2,10 +2,11 @@
 // Created by hya on 21.05.16.
 //
 
+#include <iostream>
 #include "OpticalFlow.h"
 
 void OpticalFlow::calculate(Mat prev, Mat img, Rect lastRect, bool clear) {
-    if(clear) {
+    if (clear) {
         boundingBox.width = 0;
         boundingBox.height = 0;
         points->clear();
@@ -29,9 +30,16 @@ OpticalFlow::OpticalFlow() {
 
 void OpticalFlow::resetNotFoundPoints(vector<uchar> status, Rect lastRect) {
     if (points[0].size() == points[1].size() && points[0].size() == status.size()) {
+        int count = 0;
         for (int i = 0; i < points->size(); i++) {
             if (status[i] == 0) {
-                Point randed(lastRect.x + rand()%lastRect.width, lastRect.y + rand()%lastRect.height);
+                count++;
+            }
+        }
+        if((double)count/status.size() > NOT_FOUND_POINTS) return;
+        for (int i = 0; i < points->size(); i++) {
+            if (status[i] == 0) {
+                Point randed(lastRect.x + rand() % lastRect.width, lastRect.y + rand() % lastRect.height);
                 points[0][i] = randed;
                 points[1][i] = randed;
             }
@@ -40,11 +48,12 @@ void OpticalFlow::resetNotFoundPoints(vector<uchar> status, Rect lastRect) {
 }
 
 void OpticalFlow::getOpticalFlowPoints(const Rect &rect, Mat &gray) {
-    if(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width < gray.cols && rect.y + rect.height < gray.rows) {
+    if (rect.x >= 0 && rect.y >= 0 && rect.x + rect.width < gray.cols && rect.y + rect.height < gray.rows) {
         Mat grayTrimmed(gray, rect);
         goodFeaturesToTrack(grayTrimmed, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 0, 0.04);
-        if(!points[1].empty()) {
-            if(rect.width > subPixWinSize.width*2 + 5 && rect.height > subPixWinSize.height*2 + 5)cornerSubPix(grayTrimmed, points[1], subPixWinSize, Size(-1, -1), termcrit);
+        if (!points[1].empty()) {
+            if (rect.width > subPixWinSize.width * 2 + 5 && rect.height > subPixWinSize.height * 2 + 5)
+                cornerSubPix(grayTrimmed, points[1], subPixWinSize, Size(-1, -1), termcrit);
             for (Point2f &p : points[1]) {
                 p.x += rect.x; // project points to image
                 p.y += rect.y; // project points to image
@@ -101,12 +110,12 @@ void OpticalFlow::movePoints(int lastWidth, int lastHeight) {
 
 void OpticalFlow::calculateWithCollision(Point move) {
 
-    for(int i = 0; i< points[0].size(); i++) {
+    for (int i = 0; i < points[0].size(); i++) {
         points[0][i].x += move.x;
         points[0][i].y += move.y;
     }
 
-    for(int i = 0; i< points[1].size(); i++) {
+    for (int i = 0; i < points[1].size(); i++) {
         points[1][i].x += move.x;
         points[1][i].y += move.y;
     }
@@ -118,7 +127,20 @@ void OpticalFlow::reset() {
     points->clear();
 }
 
-
+bool OpticalFlow::checkIfLostTracking(Mat &img) {
+    int count = 0;
+    for (Point p : points[1]) {
+        if (p.x > img.cols && p.x < 0 && p.y > img.rows && p.y < 0) {
+            count++;
+            continue;
+        }
+        Vec3f c = img.at<Vec3f>(p);
+        if (c(0) == 0 && c(1) == 0 && c(2) == 0) {
+            count++;
+        }
+    }
+    return (double) count / points[1].size() > LOST_LIMIT;
+}
 
 
 

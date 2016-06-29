@@ -4,3 +4,8 @@ CMakeCache.txt
 CMakeLists.txt
 cmake_install.cmake
 Makefile
+video
+hog/*
+Reidentification
+hog2/*
+hog.yml

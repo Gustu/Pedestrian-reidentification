@@ -50,7 +50,9 @@ void ReidentificationAlg::calcOpticalFlows() {
             h->opticalFlow.calculateWithCollision(h->move);
         }
         h->kalman.update(h->opticalFlow.boundingBox);
-        h->kalman.checkIfLostTracking(maskedGray);
+        if(h->opticalFlow.checkIfLostTracking(maskedGray)) {
+            h->opticalFlow.reset();
+        };
         if (h->kalman.lostTracking) {
             h->opticalFlow.reset();
             h->kalman.lostTracking = false;
@@ -133,7 +135,7 @@ Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> human, Rect rect) {
         }
     }
 
-    if (bestHuman.empty() || isGlitch(human, bestHuman)) {
+    if (bestHuman.empty()) {  // || isGlitch(human, bestHuman)
         return Ptr<Human>();
     }
     else {
@@ -165,10 +167,10 @@ void ReidentificationAlg::updateIdentified(Rect &trimmed, Ptr<Human> &human,
     best->boudingBox = trimmed;
     best->lostTracking = false;
     best->outOfWindow = false;
-
-    if (best->opticalFlow.points->empty()) {
-        best->opticalFlow.getOpticalFlowPoints(trimmed, maskedGray);
-    }
+//
+//    if (best->opticalFlow.points->empty()) {
+//        best->opticalFlow.getOpticalFlowPoints(trimmed, maskedGray);
+//    }
 
     best->point = Point(trimmed.x + trimmed.width / 2, trimmed.y + trimmed.height / 2);
     if (++best->histDescriptor.counter > HISTORY) {
@@ -203,6 +205,7 @@ void ReidentificationAlg::calcCollisions(vector<Ptr<Human>> identified) {
                 if (h1->id != h2->id && !h2->outOfWindow) {
                     Rect intersect = h1->kalman.predRect & h2->kalman.predRect;
                     if (intersect.width > 0 && intersect.height > 0) {
+                        rectangle(drawingImage, intersect, Scalar(0,0,255));
                         h1->collision = true;
                         h2->collision = true;
                         h1->reinit = true;
@@ -286,9 +289,12 @@ void ReidentificationAlg::draw_identified(Mat img, vector<Ptr<Human>> identified
 }
 
 void ReidentificationAlg::start() {
-    init();
+//    init();
     int frame_idx = 0;
     while (cap->isOpened()) {
+        if(exiting) {
+            break;
+        }
         cap->read(img);
         if (img.empty()) {
             break;
@@ -303,6 +309,24 @@ void ReidentificationAlg::start() {
         if (exit()) break;
     }
 
+    cap->release();
+    fgMaskMOG2.release();
+    prevMaskedGray.release();
+    maskedGray.release();
+    gray.release();
+    img.release();
+    foundLocations.clear();
+    foundWeights.clear();
+    identified.clear();
+    drawingImage.release();
+    clearMaskedImg.release();
+    id = 0;
+    dt = 0;
+    ticks = 0;
+    exiting = false;
+
+    destroyWindow(winname);
+
     delete cap;
 }
 
@@ -313,4 +337,23 @@ cv::Scalar ReidentificationAlg::randColor() {
 void ReidentificationAlg::setFileName(char *fileName) {
     this->fileName = fileName;
 }
+
+void ReidentificationAlg::stop() {
+    exiting = true;
+}
+
+ReidentificationAlg::ReidentificationAlg(char *fileName) {
+    this->fileName = fileName;
+    this->exiting = false;
+}
+
+ReidentificationAlg::ReidentificationAlg() {
+    this->exiting = false;
+}
+
+
+
+
+
+
 

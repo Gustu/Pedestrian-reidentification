@@ -114,14 +114,6 @@ void Kalman::resetCounter() {
     notFoundCount = 0;
 }
 
-void Kalman::checkIfLostTracking(Mat &img) {
-    if(predRect.area() > 0 && predRect.x >= 0 && predRect.x + predRect.width <= img.cols && predRect.y >= 0 && predRect.y + predRect.height <= img.rows) {
-        Mat trimmed(img, predRect);
-        int nonZero = countNonZero(trimmed);
-        double percentage = (double)nonZero / (trimmed.cols * trimmed.rows);
-        lostTracking = percentage < THRESH_LOST_TRACKING;
-    }
-}
 
 
 
