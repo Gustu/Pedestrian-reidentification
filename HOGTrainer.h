@@ -5,6 +5,8 @@
 #ifndef REIDENTIFICATION_HOGTRAINER_H
 #define REIDENTIFICATION_HOGTRAINER_H
 
+#define TRAINED_FILE "hog.yml"
+
 #include <opencv2/opencv.hpp>
 
 #include <string>
@@ -29,9 +31,10 @@ public:
     string trained;
 
     void train();
-    HOGDescriptor getHOG(const Size &size);
+    HOGDescriptor getHOG();
+    HOGTrainer(const Size &size): size(size), trained(TRAINED_FILE) {}
     HOGTrainer(string posDir, string pos, string negDir, string neg, Size size): posDir(posDir), pos(pos), negDir(negDir),
-                                                                      neg(neg), size(size) {}
+                                                                      neg(neg), size(size), trained(TRAINED_FILE) {}
     void testIt(const string fileName);
     Size size;
 private:

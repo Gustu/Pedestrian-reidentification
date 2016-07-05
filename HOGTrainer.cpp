@@ -328,7 +328,6 @@ void HOGTrainer::trainSvm(const vector<Mat> &gradient_lst, const vector<int> &la
     svm->setType(SVM::EPS_SVR); // C_SVC; // EPSILON_SVR; // may be also NU_SVR; // do regression task
     svm->train(train_data, ROW_SAMPLE, Mat(labels));
     clog << "...[done]" << endl;
-    trained = "hog.yml";
     svm->save(trained);
 }
 
@@ -394,7 +393,7 @@ void HOGTrainer::testIt(const string fileName) {
     }
 }
 
-HOGDescriptor HOGTrainer::getHOG(const Size &size) {
+HOGDescriptor HOGTrainer::getHOG() {
     if (trained != "") {
         Ptr<SVM> svm = StatModel::load<SVM>(trained);
         HOGDescriptor hog;
@@ -406,6 +405,7 @@ HOGDescriptor HOGTrainer::getHOG(const Size &size) {
     }
     return cv::HOGDescriptor();
 }
+
 
 
 
