@@ -8,16 +8,16 @@
 
 #include <opencv2/core/mat.hpp>
 #include "FilterBank.h"
+#include "GaborData.h"
 
 using namespace std;
 using namespace cv;
 
 class GaborDescriptor {
 public:
-    FilterBank filterBank;
+    GaborData data;
     GaborDescriptor() {}
-    vector<double> means;
-    vector<double> stdevs;
+
     void extractFeatures(Mat img, Rect rect);
     double compare(GaborDescriptor descriptor);
 };

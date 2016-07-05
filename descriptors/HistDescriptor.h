@@ -15,19 +15,16 @@ static const int HOG_WIDTH_DIVISION = 1;
 #include <list>
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "HistData.h"
 
 using namespace cv;
 using namespace std;
 
 class HistDescriptor {
 public:
-    MatND full;
+    HistData data;
 
-    vector<MatND> partials;
-
-    int counter;
-
-    HistDescriptor() { counter = 0; };
+    HistDescriptor() { data.counter = 0; };
 
     void extractFeatures(Mat &img, Rect &rect, Mat &mask);
 

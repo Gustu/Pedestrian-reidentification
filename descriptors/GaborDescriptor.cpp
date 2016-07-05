@@ -12,23 +12,23 @@ void GaborDescriptor::extractFeatures(Mat img, Rect rect) {
     split(ycrcb, channels);
     Mat roi(channels[0], rect);
     resize(roi, roi, Size(128, 256), 0, 0, INTER_LANCZOS4);
-    means.clear();
-    stdevs.clear();
-    for (Mat kernel : filterBank.getInstance().kernels) {
+    data.means.clear();
+    data.stdevs.clear();
+    for (Mat kernel : data.filterBank.getInstance().kernels) {
         Mat dest;
         filter2D(roi, dest, CV_32F, kernel);
         vector<double> mean;
         vector<double> stdev;
         meanStdDev(dest, mean, stdev);
-        means.push_back(mean[0]);
-        stdevs.push_back(stdev[0]);
+        data.means.push_back(mean[0]);
+        data.stdevs.push_back(stdev[0]);
     }
 }
 
 double GaborDescriptor::compare(GaborDescriptor descriptor) {
     double sum = 0.0;
-    for(int i = 0 ; i < means.size(); i++) {
-        sum += abs(means[i] - descriptor.means[i]) + abs(stdevs[i] - descriptor.stdevs[i]);
+    for(int i = 0 ; i < data.means.size(); i++) {
+        sum += abs(data.means[i] - descriptor.data.means[i]) + abs(data.stdevs[i] - descriptor.data.stdevs[i]);
     }
     return sum;
 }

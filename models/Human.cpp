@@ -8,29 +8,29 @@
 
 
 void Human::predictHumanPosition() {
-    int kx = kalman.center.x;
-    int ky = kalman.center.y;
-    predicted.x = kx;
-    predicted.y = ky;
+    int kx = data.kalman.data.center.x;
+    int ky = data.kalman.data.center.y;
+    data.predicted.x = kx;
+    data.predicted.y = ky;
 }
 
 void Human::calcBeforeAfter(Point p) {
-    if (!collision) {
-        if (++hist > 2) {
-            before = after;
+    if (!data.collision) {
+        if (++data.hist > 2) {
+            data.before = data.after;
         }
-        after = p;
-        moveHistory.push_back(Point(after.x - before.x, after.y - before.y));
-        if (moveHistory.size() > MOVE_HISTORY) {
-            moveHistory.erase(moveHistory.begin());
+        data.after = p;
+        data.moveHistory.push_back(Point(data.after.x - data.before.x, data.after.y - data.before.y));
+        if (data.moveHistory.size() > MOVE_HISTORY) {
+            data.moveHistory.erase(data.moveHistory.begin());
         }
         int sumX = 0, sumY = 0;
-        for(int i = 0 ; i < moveHistory.size(); i++) {
-            sumX += moveHistory[i].x;
-            sumY += moveHistory[i].y;
+        for(int i = 0 ; i < data.moveHistory.size(); i++) {
+            sumX += data.moveHistory[i].x;
+            sumY += data.moveHistory[i].y;
         }
-        move.x = sumX / MOVE_HISTORY;
-        move.y = sumY / MOVE_HISTORY;
+        data.move.x = sumX / MOVE_HISTORY;
+        data.move.y = sumY / MOVE_HISTORY;
     }
 }
 

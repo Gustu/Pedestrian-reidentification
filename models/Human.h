@@ -11,35 +11,20 @@
 #include "../descriptors/GaborDescriptor.h"
 #include "../descriptors/Kalman.h"
 #include "../descriptors/OpticalFlow.h"
+#include "HumanData.h"
 
 #define MOVE_HISTORY 3
 
 class Human {
 public:
-    Human() : lostTracking(false), outOfWindow(false), collision(-1), hist(0) { };
+    HumanData data;
 
-    HistDescriptor histDescriptor;
-    GaborDescriptor gaborDescriptor;
-    Kalman kalman;
-    OpticalFlow opticalFlow;
-
-    Rect boudingBox;
-    Point point;
-    Point predicted;
-    int id;
-    Scalar color;
-
-    bool collision;
-    bool reinit;
-
-    Point before;
-    Point after;
-    vector<Point> moveHistory;
-    Point move;
-    int hist;
-
-    bool lostTracking;
-    bool outOfWindow;
+    Human() {
+        data.lostTracking = false;
+        data.outOfWindow = false;
+        data.collision = -1;
+        data.hist = 0;
+    };
 
     void predictHumanPosition();
 

@@ -5,7 +5,7 @@
 #include "HaarDetector.h"
 
 HaarDetector::HaarDetector() {
-    face_cascade = new CascadeClassifier();
+    data.face_cascade = new CascadeClassifier();
 }
 
 vector<Rect> HaarDetector::detectFaces(Mat &img) {
@@ -13,14 +13,14 @@ vector<Rect> HaarDetector::detectFaces(Mat &img) {
     if (!img.empty()) {
         Mat resized;
         resize(img, resized, Size(0, 0), 3, 3, CV_INTER_LANCZOS4);
-        face_cascade->detectMultiScale(img, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
+        data.face_cascade->detectMultiScale(img, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
         resizeFaces(faces, 3, resized.cols, resized.rows);
     }
     return faces;
 }
 
 void HaarDetector::load() {
-    if (!face_cascade->load("/home/hya/workspace/reidentification/haar/data/haarcascade_frontalface_default.xml")) {
+    if (!data.face_cascade->load("/home/hya/workspace/reidentification/haar/data/haarcascade_frontalface_default.xml")) {
         printf("--(!)Error loading\n");
     };
 }

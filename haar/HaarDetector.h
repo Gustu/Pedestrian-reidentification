@@ -9,18 +9,21 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
+#include "HaarData.h"
 
 using namespace std;
 using namespace cv;
 
 class HaarDetector {
 public:
-    CascadeClassifier *face_cascade;
+    HaarData data;
 
     HaarDetector();
 
     vector<Rect> detectFaces(Mat &img);
+
     void load();
+
 private:
     void resizeFaces(vector<Rect> &faces, int scale, int resizedWidth, int resizedHeight);
 };

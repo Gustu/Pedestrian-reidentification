@@ -6,7 +6,7 @@
 #include "HistDescriptor.h"
 
 void HistDescriptor::extractFeatures(Mat &currentImage, Rect &rect, Mat &m) {
-    full = getHistogram(currentImage, rect, m);
+    data.full = getHistogram(currentImage, rect, m);
 
     int x = rect.x;
     int y = rect.y;
@@ -19,7 +19,7 @@ void HistDescriptor::extractFeatures(Mat &currentImage, Rect &rect, Mat &m) {
         for (int j = 0; j < HOG_WIDTH_DIVISION; j++) {
             window.x = x + j * dividedWidth;
             window.y = y + i * dividedHeight;
-            partials.push_back(getHistogram(currentImage, window, m));
+            data.partials.push_back(getHistogram(currentImage, window, m));
         }
     }
 }
@@ -50,12 +50,12 @@ MatND HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, co
 }
 
 double HistDescriptor::compare(HistDescriptor &descriptor) {
-    double full_compare = 1 - compareHist(full, descriptor.full, HISTCMP_BHATTACHARYYA);
+    double full_compare = 1 - compareHist(data.full, descriptor.data.full, HISTCMP_BHATTACHARYYA);
 
     if (full_compare > COMPARISON_THRESHOLD) {
         double sum = 0.0;
         for (int i = 0; i < HOG_WIDTH_DIVISION * HOG_HEIGHT_DIVISION; i++) {
-            sum += 1 - compareHist(partials[i], descriptor.partials[i], HISTCMP_BHATTACHARYYA);
+            sum += 1 - compareHist(data.partials[i], descriptor.data.partials[i], HISTCMP_BHATTACHARYYA);
         }
         return (full_compare + sum) / (HOG_WIDTH_DIVISION * HOG_HEIGHT_DIVISION + 1);
     }

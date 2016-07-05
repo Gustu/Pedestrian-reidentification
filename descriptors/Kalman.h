@@ -10,6 +10,7 @@
 #include <list>
 #include <queue>
 #include "opencv2/video/tracking.hpp"
+#include "KalmanData.h"
 
 #define THRESH_LOST_TRACKING 0.2
 
@@ -18,21 +19,7 @@ using namespace std;
 
 class Kalman {
 public:
-    int stateSize;
-    int measSize;
-    int contrSize;
-    int notFoundCount;
-
-    unsigned int type;
-    Ptr<KalmanFilter> kf;
-
-    cv::Mat state;  // [x,y,v_x,v_y,w,h]
-    cv::Mat meas;    // [z_x,z_y,z_w,z_h]
-    bool found;
-    Rect predRect;
-    Point center;
-
-    bool lostTracking;
+    KalmanData data;
 
     Kalman();
 
