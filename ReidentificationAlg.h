@@ -72,7 +72,7 @@ public:
 
     Ptr<Human> getBestMatch(Ptr<Human> &human, Rect &rect_, ReidentificationData &data);
 
-    void applyAlgorithm(int frameId, ReidentificationData &data, String &winname);
+    void applyAlgorithm(int frameId, ReidentificationData &data);
 
     void draw_points(Mat &img, vector<Ptr<Human>> &identified);
 
@@ -86,7 +86,7 @@ public:
 
     void draw_kalmans(Mat &img, vector<Ptr<Human>> &identified);
 
-    void swapPoints(ReidentificationData &data);
+    void swap(ReidentificationData &data);
 
     void processImage(ReidentificationData &data);
 

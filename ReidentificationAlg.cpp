@@ -27,10 +27,11 @@ void ReidentificationAlg::processImage(ReidentificationData &data) {
         data.maskedGray.copyTo(data.prevMaskedGray);
 }
 
-void ReidentificationAlg::swapPoints(ReidentificationData &data) {
+void ReidentificationAlg::swap(ReidentificationData &data) {
     for (Ptr<Human> h : data.identified) {
         h->data.opticalFlow.swapPoints();
     }
+    cv::swap(data.prevMaskedGray, data.maskedGray);
 }
 
 void ReidentificationAlg::markAllAsLost(ReidentificationData &data) {
@@ -84,7 +85,7 @@ void ReidentificationAlg::getDt(ReidentificationData &data) {
     data.dt = (data.ticks - precTick) / getTickFrequency(); //seconds
 }
 
-void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data, String &winname) {
+void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data) {
     calcBeforeAfter(data.identified);
     calcCollisions(data.identified, data);
     calcOpticalFlows(data);
@@ -116,16 +117,6 @@ void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data
                 newIdentified(trimmed, human, data);
             }
         }
-    }
-
-    drawing(data, winname);
-
-    swapPoints(data);
-
-    cv::swap(data.prevMaskedGray, data.maskedGray);
-
-    if (frameId % data.detect_interval == 0) {
-        markAllAsLost(data);
     }
 }
 
@@ -305,7 +296,15 @@ void ReidentificationAlg::start(ReidentificationData &data, String &winname) {
 
         processImage(data);
 
-        applyAlgorithm(data.frame_idx, data, winname);
+        applyAlgorithm(data.frame_idx, data);
+
+        drawing(data, winname);
+
+        swap(data);
+
+        if (data.frame_idx % data.detect_interval == 0) {
+            markAllAsLost(data);
+        }
 
         data.frame_idx++;
 
