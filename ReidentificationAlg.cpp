@@ -43,7 +43,8 @@ void ReidentificationAlg::markAllAsLost(ReidentificationData &data) {
 void ReidentificationAlg::calcOpticalFlows(ReidentificationData &data) {
     for (Ptr<Human> h : data.identified) {
         if (!h->data.collision && !h->data.reinit) {
-            h->data.opticalFlow.calculate(data.prevMaskedGray, data.maskedGray, h->data.boudingBox, h->data.outOfWindow);
+            h->data.opticalFlow.calculate(data.prevMaskedGray, data.maskedGray, h->data.boudingBox,
+                                          h->data.outOfWindow);
         } else if (!h->data.collision && h->data.reinit) {
             h->data.opticalFlow.getOpticalFlowPoints(h->data.kalman.data.predRect, data.maskedGray);
             h->data.reinit = false;
@@ -70,7 +71,8 @@ void ReidentificationAlg::processKalmans(int &width, int &height, Reidentificati
         }
         if (h->data.lostTracking) h->data.kalman.data.notFoundCount++;
         h->data.kalman.predict(data.dt);
-        if (h->data.kalman.data.center.y < 0 || h->data.kalman.data.center.y > height || h->data.kalman.data.center.x < 0 ||
+        if (h->data.kalman.data.center.y < 0 || h->data.kalman.data.center.y > height ||
+            h->data.kalman.data.center.x < 0 ||
             h->data.kalman.data.center.x > width) {
             h->data.outOfWindow = true;
             h->data.opticalFlow.data.points->clear();
@@ -92,16 +94,21 @@ void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data
     processKalmans(data.img.cols, data.img.rows, data);
 
     if (frameId % data.detect_interval == 0) {
-        data.hog.detectMultiScale(data.gray, data.foundLocations, data.foundWeights, hogParams.hitThreshold, hogParams.winStride,
-                             hogParams.padding,
-                             hogParams.scale, hogParams.finalThreshold, hogParams.useMeanShift);
-        data.angleHog.detectMultiScale(data.gray, data.foundAngleLocations, data.foundAngleWeights, angleHogParams.hitThreshold,
-                                  angleHogParams.winStride,
-                                  angleHogParams.padding,
-                                  angleHogParams.scale, angleHogParams.finalThreshold, angleHogParams.useMeanShiftGrouping);
+        data.hog.detectMultiScale(data.gray, data.foundLocations, data.foundWeights, hogParams.hitThreshold,
+                                  hogParams.winStride,
+                                  hogParams.padding,
+                                  hogParams.scale, hogParams.finalThreshold, hogParams.useMeanShift);
+        data.angleHog.detectMultiScale(data.gray, data.foundAngleLocations, data.foundAngleWeights,
+                                       angleHogParams.hitThreshold,
+                                       angleHogParams.winStride,
+                                       angleHogParams.padding,
+                                       angleHogParams.scale, angleHogParams.finalThreshold,
+                                       angleHogParams.useMeanShiftGrouping);
         if (!data.foundAngleLocations.empty()) {
-            for (vector<Rect>::iterator it = data.foundAngleLocations.begin(); it != data.foundAngleLocations.end(); ++it) {
-                if (it != data.foundAngleLocations.end() && it != data.foundAngleLocations.begin() && isEmpty(data.maskedGray, *it, 25)) {
+            for (vector<Rect>::iterator it = data.foundAngleLocations.begin();
+                 it != data.foundAngleLocations.end(); ++it) {
+                if (it != data.foundAngleLocations.end() && it != data.foundAngleLocations.begin() &&
+                    isEmpty(data.maskedGray, *it, 25)) {
                     data.foundAngleLocations.erase(it);
                 }
             }
@@ -147,7 +154,8 @@ Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, Reid
 }
 
 bool ReidentificationAlg::isGlitch(Ptr<Human> &human, Ptr<Human> &bestMatch, ReidentificationData &data) {
-    double dist = sqrt((human->data.point.x - bestMatch->data.point.x) ^ 2 + (human->data.point.y - bestMatch->data.point.y) ^ 2);
+    double dist = sqrt(
+            (human->data.point.x - bestMatch->data.point.x) ^ 2 + (human->data.point.y - bestMatch->data.point.y) ^ 2);
     return (bestMatch->data.move.x == 0 && bestMatch->data.move.y == 0) ?
            false :
            dist > 30.0 * sqrt((float) (bestMatch->data.move.x ^ 2 + bestMatch->data.move.y ^ 2));
@@ -311,6 +319,10 @@ void ReidentificationAlg::start(ReidentificationData &data, String &winname) {
         if (exit()) break;
     }
 
+    finish(data, winname);
+}
+
+void ReidentificationAlg::finish(ReidentificationData &data, const String &winname) {
     clear(data);
 
     destroyWindow(winname);
@@ -318,7 +330,7 @@ void ReidentificationAlg::start(ReidentificationData &data, String &winname) {
     delete data.cap;
 }
 
-void ReidentificationAlg::clear(ReidentificationData &data) const {
+void ReidentificationAlg::clear(ReidentificationData &data) {
     data.cap->release();
     data.fgMaskMOG2.release();
     data.prevMaskedGray.release();

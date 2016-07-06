@@ -4,7 +4,8 @@
 
 #include "View.h"
 
-View::View(char *fileName) {
+View::View(char *fileName, int id) {
+    winname += to_string(id);
     namedWindow(winname, WINDOW_KEEPRATIO);
     data.fileName = fileName;
     data.exiting = false;

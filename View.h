@@ -14,7 +14,7 @@ public:
 
     ReidentificationData data;
 
-    View(char *fileName);
+    View(char *fileName, int id);
 };
 
 

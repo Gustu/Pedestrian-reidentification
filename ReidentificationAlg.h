@@ -110,7 +110,9 @@ public:
 
     bool isEmpty(Mat &img, Rect &rect, int density);
 
-    void clear(ReidentificationData &data) const;
+    void clear(ReidentificationData &data);
+
+    void finish(ReidentificationData &data, const String &winname);
 };
 
 

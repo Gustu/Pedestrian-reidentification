@@ -18,15 +18,13 @@ public:
 
     MultiView() {
         alg = new ReidentificationAlg();
-        View view((char *) "video/campus4-c0.avi");
+        View view((char *) "video/campus4-c0.avi", 0);
         views.push_back(view);
+        View view2((char *) "video/campus4-c1.avi", 1);
+        views.push_back(view2);
     }
 
-    void start() {
-        for(View &view : views) {
-            alg->start(view.data, view.winname);
-        }
-    }
+    void start();
 };
 
 
