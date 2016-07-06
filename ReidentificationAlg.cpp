@@ -60,7 +60,7 @@ void ReidentificationAlg::calcOpticalFlows(ReidentificationData &data) {
     }
 }
 
-void ReidentificationAlg::processKalmans(int width, int height, ReidentificationData &data) {
+void ReidentificationAlg::processKalmans(int &width, int &height, ReidentificationData &data) {
     getDt(data);
     for (Ptr<Human> h : data.identified) {
         if (h->data.kalman.data.notFoundCount > 100) {
@@ -84,7 +84,7 @@ void ReidentificationAlg::getDt(ReidentificationData &data) {
     data.dt = (data.ticks - precTick) / getTickFrequency(); //seconds
 }
 
-void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data) {
+void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data, String &winname) {
     calcBeforeAfter(data.identified);
     calcCollisions(data.identified, data);
     calcOpticalFlows(data);
@@ -118,7 +118,7 @@ void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data
         }
     }
 
-    drawing(data);
+    drawing(data, winname);
 
     swapPoints(data);
 
@@ -129,13 +129,13 @@ void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data
     }
 }
 
-void ReidentificationAlg::calcBeforeAfter(vector<Ptr<Human>> identified) {
+void ReidentificationAlg::calcBeforeAfter(vector<Ptr<Human>> &identified) {
     for (Ptr<Human> h : identified) {
         h->calcBeforeAfter(h->data.point);
     }
 }
 
-Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> human, Rect rect, ReidentificationData &data) {
+Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, ReidentificationData &data) {
     Ptr<Human> bestHuman;
     human->data.histDescriptor.extractFeatures(data.img, rect, data.fgMaskMOG2);
     double best_comparison = 0;
@@ -155,7 +155,7 @@ Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> human, Rect rect, Reiden
     }
 }
 
-bool ReidentificationAlg::isGlitch(Ptr<Human> human, Ptr<Human> bestMatch, ReidentificationData &data) {
+bool ReidentificationAlg::isGlitch(Ptr<Human> &human, Ptr<Human> &bestMatch, ReidentificationData &data) {
     double dist = sqrt((human->data.point.x - bestMatch->data.point.x) ^ 2 + (human->data.point.y - bestMatch->data.point.y) ^ 2);
     return (bestMatch->data.move.x == 0 && bestMatch->data.move.y == 0) ?
            false :
@@ -199,7 +199,7 @@ void ReidentificationAlg::updateIdentified(Rect &trimmed, Ptr<Human> &human,
     best->data.kalman.update(trimmed);
 }
 
-void ReidentificationAlg::drawing(ReidentificationData &data) {
+void ReidentificationAlg::drawing(ReidentificationData &data, String &winname) {
     draw_detections(data.drawingImage, data.foundAngleLocations);
 //    draw_identified(drawingImage, identified);
 //    draw_kalmans(drawingImage, identified);
@@ -209,7 +209,7 @@ void ReidentificationAlg::drawing(ReidentificationData &data) {
     imshow(winname, data.drawingImage);
 }
 
-void ReidentificationAlg::calcCollisions(vector<Ptr<Human>> identified, ReidentificationData &data) {
+void ReidentificationAlg::calcCollisions(vector<Ptr<Human>> &identified, ReidentificationData &data) {
     for_each(identified.begin(), identified.end(), [](Ptr<Human> &human) { human->data.collision = false; });
     for (Ptr<Human> h1 : identified) {
         if (!h1->data.outOfWindow) {
@@ -229,7 +229,7 @@ void ReidentificationAlg::calcCollisions(vector<Ptr<Human>> identified, Reidenti
     }
 }
 
-void ReidentificationAlg::draw_kalmans(Mat img, vector<Ptr<Human>> identified) {
+void ReidentificationAlg::draw_kalmans(Mat &img, vector<Ptr<Human>> &identified) {
     for (Ptr<Human> h: identified) {
         if (h->data.kalman.data.found) {
             h->data.kalman.drawPredicted(img);
@@ -237,23 +237,10 @@ void ReidentificationAlg::draw_kalmans(Mat img, vector<Ptr<Human>> identified) {
     }
 }
 
-void ReidentificationAlg::draw_points(Mat img, vector<Ptr<Human>> identified) {
+void ReidentificationAlg::draw_points(Mat &img, vector<Ptr<Human>> &identified) {
     for (Ptr<Human> h : identified) {
         h->data.opticalFlow.drawPoints(img, h->data.color);
     }
-}
-
-void ReidentificationAlg::init(ReidentificationData &data) {
-    namedWindow(winname, WINDOW_KEEPRATIO);
-    data.hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
-#ifndef RETRAIN_HOG
-    data.hogTrainer = new HOGTrainer(Size(64, 128));
-#else
-    hogTrainer = new HOGTrainer("hog/pos/", "hog/pos.list", "hog/neg/", "hog/neg.list", Size(64, 128));
-#endif
-    data.angleHog = data.hogTrainer->getHOG();
-    data.pMOG2 = createBackgroundSubtractorMOG2(); //MOG2 approach
-    data.cap = new VideoCapture(data.fileName);
 }
 
 void ReidentificationAlg::getForegroundMask(ReidentificationData &data) {
@@ -273,7 +260,7 @@ void ReidentificationAlg::getForegroundMask(ReidentificationData &data) {
     data.img.copyTo(data.clearMaskedImg, data.fgMaskMOG2);
 }
 
-Rect ReidentificationAlg::trimRect(Rect rect) {
+Rect ReidentificationAlg::trimRect(Rect &rect) {
     int pad_w = (int) (0.15 * rect.width);
     int pad_h = (int) (0.05 * rect.height);
     Point pt1(rect.x + pad_w, rect.y + pad_h);
@@ -281,7 +268,7 @@ Rect ReidentificationAlg::trimRect(Rect rect) {
     return Rect(pt1, pt2);
 }
 
-void ReidentificationAlg::draw_detections(Mat frame, vector<Rect> rects) {
+void ReidentificationAlg::draw_detections(Mat &frame, vector<Rect> &rects) {
     for (Rect rect : rects) {
         int pad_w = (int) (0.15 * rect.width);
         int pad_h = (int) (0.05 * rect.height);
@@ -294,7 +281,7 @@ void ReidentificationAlg::draw_detections(Mat frame, vector<Rect> rects) {
     }
 }
 
-void ReidentificationAlg::draw_identified(Mat img, vector<Ptr<Human>> identified) {
+void ReidentificationAlg::draw_identified(Mat &img, vector<Ptr<Human>> &identified) {
     for (Ptr<Human> human : identified) {
         if (human->data.kalman.data.found) {
             string str = "ID:";
@@ -306,8 +293,7 @@ void ReidentificationAlg::draw_identified(Mat img, vector<Ptr<Human>> identified
     }
 }
 
-void ReidentificationAlg::start(ReidentificationData &data) {
-    int frame_idx = 0;
+void ReidentificationAlg::start(ReidentificationData &data, String &winname) {
     while (data.cap->isOpened()) {
         if (data.exiting) {
             break;
@@ -319,13 +305,21 @@ void ReidentificationAlg::start(ReidentificationData &data) {
 
         processImage(data);
 
-        applyAlgorithm(frame_idx, data);
+        applyAlgorithm(data.frame_idx, data, winname);
 
-        frame_idx++;
+        data.frame_idx++;
 
         if (exit()) break;
     }
 
+    clear(data);
+
+    destroyWindow(winname);
+
+    delete data.cap;
+}
+
+void ReidentificationAlg::clear(ReidentificationData &data) const {
     data.cap->release();
     data.fgMaskMOG2.release();
     data.prevMaskedGray.release();
@@ -341,10 +335,6 @@ void ReidentificationAlg::start(ReidentificationData &data) {
     data.dt = 0;
     data.ticks = 0;
     data.exiting = false;
-
-    destroyWindow(winname);
-
-    delete data.cap;
 }
 
 cv::Scalar ReidentificationAlg::randColor() {
@@ -357,17 +347,6 @@ void ReidentificationAlg::setFileName(char *fileName, ReidentificationData &data
 
 void ReidentificationAlg::stop(ReidentificationData &data) {
     data.exiting = true;
-}
-
-ReidentificationAlg::ReidentificationAlg(char *fileName, ReidentificationData &data) {
-    data.fileName = fileName;
-    data.exiting = false;
-//    this->haarDetector.load();
-}
-
-ReidentificationAlg::ReidentificationAlg(ReidentificationData &data) {
-    data.exiting = false;
-//    this->haarDetector.load();
 }
 
 void ReidentificationAlg::detectFaces(Mat &img, ReidentificationData &data) {

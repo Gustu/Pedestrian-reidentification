@@ -18,7 +18,7 @@ private:
     thread *th;
 public:
     ReidentificationThread(char *fileName):fileName(fileName) {
-        r = new ReidentificationAlg(data);
+        r = new ReidentificationAlg();
     }
     ~ReidentificationThread() {
         delete r;

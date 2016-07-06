@@ -1,10 +1,11 @@
 #include "main.h"
+#include "MultiView.h"
 
 
 //#define DEMO
 
 GtkWidget *createWindow();
-ReidentificationAlg *reidentificationAlg;
+MultiView multiView;
 
 int main(int argc, char *argv[]) {
 #if defined DEMO
@@ -15,11 +16,7 @@ int main(int argc, char *argv[]) {
     gtk_widget_show( window );
     gtk_main();
 #else
-    ReidentificationData data;
-    reidentificationAlg = new ReidentificationAlg(data);
-    reidentificationAlg->setFileName((char *) "video/campus4-c0.avi", data);
-    reidentificationAlg->init(data);
-    reidentificationAlg->start(data);
+    multiView.start();
 #endif
     return 0;
 }

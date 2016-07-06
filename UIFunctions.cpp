@@ -13,9 +13,9 @@ void on_startButton_clicked(GtkButton *button, gpointer user_data) {
     if (!started) {
         started = true;
         delete r;
-        r = new ReidentificationAlg(fileNameUI, data);
-        r->init(data);
-        r->start(data);
+        r = new ReidentificationAlg();
+        String winname = "winname";
+        r->start(data, winname);
     }
 }
 

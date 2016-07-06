@@ -33,8 +33,6 @@ using namespace cv::ml;
 
 //#define RETRAIN_HOG
 
-const char *const winname = "Press q to exit";
-
 struct {
     double hitThreshold = 0;
     Size winStride = Size(8, 8);
@@ -56,41 +54,37 @@ struct {
 
 class ReidentificationAlg {
 public:
-    ReidentificationAlg(ReidentificationData &data);
+    ReidentificationAlg() {}
 
-    ReidentificationAlg(char *fileName, ReidentificationData &data);
-
-    Rect trimRect(Rect r);
+    Rect trimRect(Rect &r);
 
     void getForegroundMask(ReidentificationData &data);
 
-    void draw_identified(Mat img, vector<Ptr<Human>> identified);
+    void draw_identified(Mat &img, vector<Ptr<Human>> &identified);
 
-    void draw_detections(Mat frame, vector<Rect> rects);
+    void draw_detections(Mat &frame, vector<Rect> &rects);
 
-    void init(ReidentificationData &data);
-
-    void drawing(ReidentificationData &data);
+    void drawing(ReidentificationData &data, String &winname);
 
     void updateIdentified(Rect &trimmed, Ptr<Human> &human, Ptr<Human> &best, ReidentificationData &data);
 
     void newIdentified(Rect &rect, Ptr<Human> &human, ReidentificationData &data);
 
-    Ptr<Human> getBestMatch(Ptr<Human> human, Rect rect_, ReidentificationData &data);
+    Ptr<Human> getBestMatch(Ptr<Human> &human, Rect &rect_, ReidentificationData &data);
 
-    void applyAlgorithm(int frameId, ReidentificationData &data);
+    void applyAlgorithm(int frameId, ReidentificationData &data, String &winname);
 
-    void draw_points(Mat img, vector<Ptr<Human>> identified);
+    void draw_points(Mat &img, vector<Ptr<Human>> &identified);
 
     void getDt(ReidentificationData &data);
 
-    void processKalmans(int i, int i1, ReidentificationData &data);
+    void processKalmans(int &i, int &i1, ReidentificationData &data);
 
     void calcOpticalFlows(ReidentificationData &data);
 
     void markAllAsLost(ReidentificationData &data);
 
-    void draw_kalmans(Mat img, vector<Ptr<Human>> identified);
+    void draw_kalmans(Mat &img, vector<Ptr<Human>> &identified);
 
     void swapPoints(ReidentificationData &data);
 
@@ -98,13 +92,13 @@ public:
 
     bool exit();
 
-    void calcCollisions(vector<Ptr<Human>> identified, ReidentificationData &data);
+    void calcCollisions(vector<Ptr<Human>> &identified, ReidentificationData &data);
 
-    void calcBeforeAfter(vector<Ptr<Human>> identified);
+    void calcBeforeAfter(vector<Ptr<Human>> &identified);
 
-    bool isGlitch(Ptr<Human> ptr, Ptr<Human> ptr1, ReidentificationData &data);
+    bool isGlitch(Ptr<Human> &ptr, Ptr<Human> &ptr1, ReidentificationData &data);
 
-    void start(ReidentificationData &data);
+    void start(ReidentificationData &data, String &winname);
 
     void stop(ReidentificationData &data);
 
@@ -115,6 +109,8 @@ public:
     void detectFaces(Mat &img, ReidentificationData &data);
 
     bool isEmpty(Mat &img, Rect &rect, int density);
+
+    void clear(ReidentificationData &data) const;
 };
 
 

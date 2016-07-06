@@ -11,6 +11,7 @@
 
 class ReidentificationData {
 public:
+    int frame_idx = 0;
     ReidentificationData() {};
     bool exiting;
     char *fileName;
@@ -23,7 +24,7 @@ public:
     HOGTrainer *hogTrainer;
 
     Ptr<BackgroundSubtractorMOG2> pMOG2; //MOG2 Background subtractor
-    VideoCapture *cap;
+    Ptr<VideoCapture> cap;
     Mat prevMaskedGray, maskedGray, gray, img;
     vector<Rect> foundLocations;
     vector<double> foundWeights;
