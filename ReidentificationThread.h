@@ -11,13 +11,14 @@
 class ReidentificationThread {
 private:
     ReidentificationAlg *r;
+    ReidentificationData data;
     char *fileName;
     void threadFunction();
     int rc;
     thread *th;
 public:
     ReidentificationThread(char *fileName):fileName(fileName) {
-        r = new ReidentificationAlg();
+        r = new ReidentificationAlg(data);
     }
     ~ReidentificationThread() {
         delete r;

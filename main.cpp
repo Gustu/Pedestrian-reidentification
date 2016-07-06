@@ -4,7 +4,7 @@
 //#define DEMO
 
 GtkWidget *createWindow();
-ReidentificationAlg reidentificationAlg;
+ReidentificationAlg *reidentificationAlg;
 
 int main(int argc, char *argv[]) {
 #if defined DEMO
@@ -15,9 +15,11 @@ int main(int argc, char *argv[]) {
     gtk_widget_show( window );
     gtk_main();
 #else
-    reidentificationAlg.setFileName((char *) "video/campus4-c0.avi");
-    reidentificationAlg.init();
-    reidentificationAlg.start();
+    ReidentificationData data;
+    reidentificationAlg = new ReidentificationAlg(data);
+    reidentificationAlg->setFileName((char *) "video/campus4-c0.avi", data);
+    reidentificationAlg->init(data);
+    reidentificationAlg->start(data);
 #endif
     return 0;
 }

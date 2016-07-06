@@ -56,65 +56,63 @@ struct {
 
 class ReidentificationAlg {
 public:
-    ReidentificationData data;
+    ReidentificationAlg(ReidentificationData &data);
 
-    ReidentificationAlg();
-
-    ReidentificationAlg(char *fileName);
+    ReidentificationAlg(char *fileName, ReidentificationData &data);
 
     Rect trimRect(Rect r);
 
-    void getForegroundMask(const Mat &curImage, Mat &mask);
+    void getForegroundMask(ReidentificationData &data);
 
     void draw_identified(Mat img, vector<Ptr<Human>> identified);
 
     void draw_detections(Mat frame, vector<Rect> rects);
 
-    void init();
+    void init(ReidentificationData &data);
 
-    void drawing();
+    void drawing(ReidentificationData &data);
 
-    void updateIdentified(Rect &trimmed, Ptr<Human> &human, Ptr<Human> &best);
+    void updateIdentified(Rect &trimmed, Ptr<Human> &human, Ptr<Human> &best, ReidentificationData &data);
 
-    void newIdentified(Rect &rect, Ptr<Human> &human);
+    void newIdentified(Rect &rect, Ptr<Human> &human, ReidentificationData &data);
 
-    Ptr<Human> getBestMatch(Ptr<Human> human, Rect rect_);
+    Ptr<Human> getBestMatch(Ptr<Human> human, Rect rect_, ReidentificationData &data);
 
-    void applyAlgorithm(int frameId);
+    void applyAlgorithm(int frameId, ReidentificationData &data);
 
     void draw_points(Mat img, vector<Ptr<Human>> identified);
 
-    void getDt();
+    void getDt(ReidentificationData &data);
 
-    void processKalmans(int i, int i1);
+    void processKalmans(int i, int i1, ReidentificationData &data);
 
-    void calcOpticalFlows();
+    void calcOpticalFlows(ReidentificationData &data);
 
-    void markAllAsLost();
+    void markAllAsLost(ReidentificationData &data);
 
     void draw_kalmans(Mat img, vector<Ptr<Human>> identified);
 
-    void swapPoints();
+    void swapPoints(ReidentificationData &data);
 
-    void processImage();
+    void processImage(ReidentificationData &data);
 
     bool exit();
 
-    void calcCollisions(vector<Ptr<Human>> identified);
+    void calcCollisions(vector<Ptr<Human>> identified, ReidentificationData &data);
 
     void calcBeforeAfter(vector<Ptr<Human>> identified);
 
-    bool isGlitch(Ptr<Human> ptr, Ptr<Human> ptr1);
+    bool isGlitch(Ptr<Human> ptr, Ptr<Human> ptr1, ReidentificationData &data);
 
-    void start();
+    void start(ReidentificationData &data);
 
-    void stop();
+    void stop(ReidentificationData &data);
 
     Scalar randColor();
 
-    void setFileName(char *fileName);
+    void setFileName(char *fileName, ReidentificationData &data);
 
-    void detectFaces(Mat &img);
+    void detectFaces(Mat &img, ReidentificationData &data);
 
     bool isEmpty(Mat &img, Rect &rect, int density);
 };

@@ -6,15 +6,16 @@
 
 char *fileNameUI;
 ReidentificationAlg *r;
+ReidentificationData data;
 bool started = false;
 
 void on_startButton_clicked(GtkButton *button, gpointer user_data) {
     if (!started) {
         started = true;
         delete r;
-        r = new ReidentificationAlg(fileNameUI);
-        r->init();
-        r->start();
+        r = new ReidentificationAlg(fileNameUI, data);
+        r->init(data);
+        r->start(data);
     }
 }
 
@@ -24,7 +25,7 @@ void on_fileChooserButton_file_set(GtkFileChooser *fileChooser) {
 
 void on_stopButton_clicked(GtkButton *button, gpointer user_data) {
     if (started) {
-        r->stop();
+        r->stop(data);
         started = false;
     }
 }

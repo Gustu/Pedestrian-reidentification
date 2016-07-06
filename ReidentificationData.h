@@ -11,6 +11,7 @@
 
 class ReidentificationData {
 public:
+    ReidentificationData() {};
     bool exiting;
     char *fileName;
     int detect_interval = 5;

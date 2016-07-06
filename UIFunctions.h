@@ -13,6 +13,7 @@
 using namespace std;
 
 extern char *fileNameUI;
+extern ReidentificationData data;
 extern ReidentificationAlg *r;
 extern bool started;
 

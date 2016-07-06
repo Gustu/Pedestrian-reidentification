@@ -10,8 +10,8 @@ void ReidentificationThread::start() {
 }
 
 void ReidentificationThread::threadFunction() {
-    r->setFileName(fileName);
-    r->start();
+    r->setFileName(fileName, data);
+    r->start(data);
 }
 
 void ReidentificationThread::stop() {
