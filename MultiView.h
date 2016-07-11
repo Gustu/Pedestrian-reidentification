@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "View.h"
+#include "ReidentificationAlg.h"
 
 using namespace std;
 
@@ -18,9 +19,9 @@ public:
 
     MultiView() {
         alg = new ReidentificationAlg();
-        View view((char *) "video/campus4-c0.avi", 0);
+        View view((char *) "video/campus4-c0.avi");
         views.push_back(view);
-        View view2((char *) "video/campus4-c1.avi", 1);
+        View view2((char *) "video/campus4-c1.avi");
         views.push_back(view2);
     }
 

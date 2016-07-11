@@ -87,41 +87,69 @@ void ReidentificationAlg::getDt(ReidentificationData &data) {
     data.dt = (data.ticks - precTick) / getTickFrequency(); //seconds
 }
 
-void ReidentificationAlg::applyAlgorithm(int frameId, ReidentificationData &data) {
-    calcBeforeAfter(data.identified);
-    calcCollisions(data.identified, data);
-    calcOpticalFlows(data);
-    processKalmans(data.img.cols, data.img.rows, data);
+void ReidentificationAlg::applyAlgorithm(vector<View> &views) {
+    for (vector<View>::iterator it = views.begin(); it != views.end(); ++it) {
+        calcBeforeAfter(it->data.identified);
+        calcCollisions(it->data.identified, it->data);
+        calcOpticalFlows(it->data);
+        processKalmans(it->data.img.cols, it->data.img.rows, it->data);
 
-    if (frameId % data.detect_interval == 0) {
-        data.hog.detectMultiScale(data.gray, data.foundLocations, data.foundWeights, hogParams.hitThreshold,
-                                  hogParams.winStride,
-                                  hogParams.padding,
-                                  hogParams.scale, hogParams.finalThreshold, hogParams.useMeanShift);
-        data.angleHog.detectMultiScale(data.gray, data.foundAngleLocations, data.foundAngleWeights,
-                                       angleHogParams.hitThreshold,
-                                       angleHogParams.winStride,
-                                       angleHogParams.padding,
-                                       angleHogParams.scale, angleHogParams.finalThreshold,
-                                       angleHogParams.useMeanShiftGrouping);
-        if (!data.foundAngleLocations.empty()) {
-            for (vector<Rect>::iterator it = data.foundAngleLocations.begin();
-                 it != data.foundAngleLocations.end(); ++it) {
-                if (it != data.foundAngleLocations.end() && it != data.foundAngleLocations.begin() &&
-                    isEmpty(data.maskedGray, *it, 25)) {
-                    data.foundAngleLocations.erase(it);
+        if (it->data.frame_idx % it->data.detect_interval == 0) {
+            it->data.hog.detectMultiScale(it->data.gray, it->data.foundLocations, it->data.foundWeights,
+                                          hogParams.hitThreshold,
+                                          hogParams.winStride,
+                                          hogParams.padding,
+                                          hogParams.scale, hogParams.finalThreshold, hogParams.useMeanShift);
+            it->data.angleHog.detectMultiScale(it->data.gray, it->data.foundAngleLocations, it->data.foundAngleWeights,
+                                               angleHogParams.hitThreshold,
+                                               angleHogParams.winStride,
+                                               angleHogParams.padding,
+                                               angleHogParams.scale, angleHogParams.finalThreshold,
+                                               angleHogParams.useMeanShiftGrouping);
+            if (!it->data.foundAngleLocations.empty()) {
+                for (vector<Rect>::iterator i = it->data.foundAngleLocations.begin();
+                     i != it->data.foundAngleLocations.end(); ++i) {
+                    if (i != it->data.foundAngleLocations.end() && i != it->data.foundAngleLocations.begin() &&
+                        isEmpty(it->data.maskedGray, *i, 25)) {
+                        it->data.foundAngleLocations.erase(i);
+                    }
                 }
             }
-        }
 
-        for (int i = 0; i < data.foundLocations.size(); i++) {
-            Rect trimmed = trimRect(data.foundLocations[i]);
-            Ptr<Human> human = new Human();
-            Ptr<Human> best = getBestMatch(human, trimmed, data);
-            if (!best.empty()) {
-                updateIdentified(trimmed, human, best, data);
-            } else {
-                newIdentified(trimmed, human, data);
+            for (int i = 0; i < it->data.foundLocations.size(); i++) {
+                Rect trimmed = trimRect(it->data.foundLocations[i]);
+                Ptr<Human> human = new Human();
+                Ptr<Human> best = getBestMatch(human, trimmed, it->data.identified, it->data);
+                if (!best.empty()) {
+                    updateIdentified(trimmed, human, best, it->data);
+                } else {
+                    Ptr<Human> humanFromAnotherView = new Human();
+                    for (vector<View>::iterator iter = views.begin(); iter != views.end(); ++iter) {
+                        if (iter->id != it->id) {
+                            humanFromAnotherView = getBestMatch(humanFromAnotherView, trimmed, iter->data.identified, it->data);
+                            if (!humanFromAnotherView.empty()) {
+                                break;
+                            }
+                        }
+                    }
+                    if (!humanFromAnotherView.empty()) {
+                        int index = getIndexIfHumanExists(it->data.identified, humanFromAnotherView->data.id);
+                        if(index == -1) {
+                            Ptr<Human> newHuman = new Human();
+                            newHuman->data.id = humanFromAnotherView->data.id;
+                            newHuman->data.color = humanFromAnotherView->data.color;
+                            newHuman->data.boudingBox = trimmed;
+                            newHuman->data.point = Point(trimmed.x + trimmed.width / 2, trimmed.y + trimmed.height / 2);
+                            newHuman->data.opticalFlow.getOpticalFlowPoints(trimmed, it->data.maskedGray);
+                            newHuman->data.histDescriptor.extractFeatures(it->data.img, trimmed, it->data.fgMaskMOG2);
+                            it->data.identified.push_back(newHuman);
+                        } else {
+                            updateIdentified(trimmed, humanFromAnotherView, it->data.identified[index], it->data);
+                        }
+                    } else {
+                        newIdentified(trimmed, human, it->data);
+                    }
+                }
             }
         }
     }
@@ -133,11 +161,12 @@ void ReidentificationAlg::calcBeforeAfter(vector<Ptr<Human>> &identified) {
     }
 }
 
-Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, ReidentificationData &data) {
+Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, vector<Ptr<Human>> &identified,
+                                             ReidentificationData &data) {
     Ptr<Human> bestHuman;
     human->data.histDescriptor.extractFeatures(data.img, rect, data.fgMaskMOG2);
     double best_comparison = 0;
-    for (vector<Ptr<Human>>::iterator it = data.identified.begin(); it != data.identified.end(); it++) {
+    for (vector<Ptr<Human>>::iterator it = identified.begin(); it != identified.end(); it++) {
         double comparison = human->data.histDescriptor.compare(((*it)->data.histDescriptor));
         if (comparison > COMPARISON_THRESHOLD && best_comparison < comparison) {
             best_comparison = comparison;
@@ -199,10 +228,10 @@ void ReidentificationAlg::updateIdentified(Rect &trimmed, Ptr<Human> &human,
 }
 
 void ReidentificationAlg::drawing(ReidentificationData &data, String &winname) {
-    draw_detections(data.drawingImage, data.foundAngleLocations);
-//    draw_identified(drawingImage, identified);
-//    draw_kalmans(drawingImage, identified);
-//    draw_points(drawingImage, identified);
+    draw_detections(data.drawingImage, data.foundLocations);
+    draw_identified(data.drawingImage, data.identified);
+    draw_kalmans(data.drawingImage, data.identified);
+    draw_points(data.drawingImage, data.identified);
 
 
     imshow(winname, data.drawingImage);
@@ -292,36 +321,6 @@ void ReidentificationAlg::draw_identified(Mat &img, vector<Ptr<Human>> &identifi
     }
 }
 
-void ReidentificationAlg::start(ReidentificationData &data, String &winname) {
-    while (data.cap->isOpened()) {
-        if (data.exiting) {
-            break;
-        }
-        data.cap->read(data.img);
-        if (data.img.empty()) {
-            break;
-        }
-
-        processImage(data);
-
-        applyAlgorithm(data.frame_idx, data);
-
-        drawing(data, winname);
-
-        swap(data);
-
-        if (data.frame_idx % data.detect_interval == 0) {
-            markAllAsLost(data);
-        }
-
-        data.frame_idx++;
-
-        if (exit()) break;
-    }
-
-    finish(data, winname);
-}
-
 void ReidentificationAlg::finish(ReidentificationData &data, const String &winname) {
     clear(data);
 
@@ -385,6 +384,17 @@ bool ReidentificationAlg::isEmpty(Mat &img, Rect &rect, int density) {
     }
     return (double) count / (density * density) > EMPTY_LIMIT;
 }
+
+int ReidentificationAlg::getIndexIfHumanExists(vector<Ptr<Human>> identified, int id) {
+    for (int i = 0; i < identified.size(); i++) {
+        if(identified[i]->data.id == id) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 
 
 

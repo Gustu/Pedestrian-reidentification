@@ -15,7 +15,7 @@ void on_startButton_clicked(GtkButton *button, gpointer user_data) {
         delete r;
         r = new ReidentificationAlg();
         String winname = "winname";
-        r->start(data, winname);
+//        r->start(data, winname);
     }
 }
 

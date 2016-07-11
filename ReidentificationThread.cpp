@@ -12,7 +12,7 @@ void ReidentificationThread::start() {
 void ReidentificationThread::threadFunction() {
     r->setFileName(fileName, data);
     String winname = "winname";
-    r->start(data, winname);
+//    r->start(data, winname);
 }
 
 void ReidentificationThread::stop() {

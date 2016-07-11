@@ -24,6 +24,7 @@
 #include "haar/HaarDetector.h"
 #include "HOGTrainer.h"
 #include "ReidentificationData.h"
+#include "View.h"
 #include <iostream>
 
 #define EMPTY_LIMIT 0.3
@@ -70,9 +71,9 @@ public:
 
     void newIdentified(Rect &rect, Ptr<Human> &human, ReidentificationData &data);
 
-    Ptr<Human> getBestMatch(Ptr<Human> &human, Rect &rect_, ReidentificationData &data);
+    Ptr<Human> getBestMatch(Ptr<Human> &human, Rect &rect_, vector<Ptr<Human>> &identified, ReidentificationData &data);
 
-    void applyAlgorithm(int frameId, ReidentificationData &data);
+    void applyAlgorithm(vector<View> &views);
 
     void draw_points(Mat &img, vector<Ptr<Human>> &identified);
 
@@ -98,8 +99,6 @@ public:
 
     bool isGlitch(Ptr<Human> &ptr, Ptr<Human> &ptr1, ReidentificationData &data);
 
-    void start(ReidentificationData &data, String &winname);
-
     void stop(ReidentificationData &data);
 
     Scalar randColor();
@@ -113,6 +112,8 @@ public:
     void clear(ReidentificationData &data);
 
     void finish(ReidentificationData &data, const String &winname);
+
+    int getIndexIfHumanExists(vector<Ptr<Human>> identified, int id);
 };
 
 

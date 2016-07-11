@@ -29,9 +29,7 @@ void MultiView::start() {
             alg->processImage(it->data);
         }
 
-        for (vector<View>::iterator it = views.begin(); it != views.end(); ++it) {
-            alg->applyAlgorithm(it->data.frame_idx, it->data);
-        }
+        alg->applyAlgorithm(views);
 
         for (vector<View>::iterator it = views.begin(); it != views.end(); ++it) {
             alg->drawing(it->data, it->winname);

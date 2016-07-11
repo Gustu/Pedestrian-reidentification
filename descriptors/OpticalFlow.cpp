@@ -130,7 +130,7 @@ void OpticalFlow::reset() {
 bool OpticalFlow::checkIfLostTracking(Mat &img) {
     int count = 0;
     for (Point p : data.points[1]) {
-        if (p.x > img.cols && p.x < 0 && p.y > img.rows && p.y < 0) {
+        if (p.x > img.cols || p.x < 0 || p.y > img.rows || p.y < 0) {
             count++;
             continue;
         }
