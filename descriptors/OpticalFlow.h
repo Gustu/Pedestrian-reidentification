@@ -35,7 +35,7 @@ public:
 
     void reset();
 
-    bool checkIfLostTracking(Mat &img);
+    bool isTrackingLost(Mat &img);
 
 private:
     void calculateRegion();

@@ -21,8 +21,8 @@ public:
         alg = new ReidentificationAlg();
         View view((char *) "video/campus4-c0.avi");
         views.push_back(view);
-        View view2((char *) "video/campus4-c1.avi");
-        views.push_back(view2);
+//        View view2((char *) "video/campus4-c1.avi");
+//        views.push_back(view2);
     }
 
     void start();

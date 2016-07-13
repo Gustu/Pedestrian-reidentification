@@ -24,6 +24,7 @@ public:
         data.outOfWindow = false;
         data.collision = -1;
         data.hist = 0;
+        data.reinit = false;
     };
 
     void predictHumanPosition();

@@ -5,7 +5,6 @@
 #include "Kalman.h"
 
 
-
 Kalman::Kalman() {
     data.stateSize = 6;
     data.measSize = 4;
@@ -41,7 +40,7 @@ Kalman::Kalman() {
     data.kf->measurementMatrix.at<float>(16) = 1.0f;
     data.kf->measurementMatrix.at<float>(23) = 1.0f;
 
-    // Process Noise Covariance Matrix Qhttps://scontent-waw1-1.xx.fbcdn.net/v/t1.0-0/p206x206/25826_374708229561_24411_n.jpg?oh=73088d1ade86fadf91d4e4c41937141c&oe=57DC73BD
+    // Process Noise Covariance Matrix Q
     // [ Ex   0   0     0     0    0  ]
     // [ 0    Ey  0     0     0    0  ]
     // [ 0    0   Ev_x  0     0    0  ]
@@ -58,7 +57,7 @@ Kalman::Kalman() {
 }
 
 void Kalman::predict(double dt) {
-    if(data.found) {
+    if (data.found) {
         // >>>> Matrix A
         data.kf->transitionMatrix.at<float>(2) = dt;
         data.kf->transitionMatrix.at<float>(9) = dt;
@@ -76,15 +75,15 @@ void Kalman::predict(double dt) {
 }
 
 void Kalman::drawPredicted(Mat &img) {
-    circle(img, data.center, 2, CV_RGB(255,0,0), -1);
-    rectangle(img, data.predRect, CV_RGB(255,0,0), 2);
+    circle(img, data.center, 2, CV_RGB(255, 0, 0), -1);
+    rectangle(img, data.predRect, CV_RGB(255, 0, 0), 2);
 }
 
 void Kalman::update(Rect &rect) {
     data.meas.at<float>(0) = rect.x + rect.width / 2;
     data.meas.at<float>(1) = rect.y + rect.height / 2;
-    data.meas.at<float>(2) = (float)rect.width;
-    data.meas.at<float>(3) = (float)rect.height;
+    data.meas.at<float>(2) = (float) rect.width;
+    data.meas.at<float>(3) = (float) rect.height;
 
     if (!data.found) // First detection!
     {
@@ -106,8 +105,8 @@ void Kalman::update(Rect &rect) {
 
         data.found = true;
     }
-    else
-        data.kf->correct(data.meas); // Kalman Correction
+
+    data.kf->correct(data.meas); // Kalman Correction
 }
 
 void Kalman::resetCounter() {

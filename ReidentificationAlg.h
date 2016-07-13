@@ -114,6 +114,8 @@ public:
     void finish(ReidentificationData &data, const String &winname);
 
     int getIndexIfHumanExists(vector<Ptr<Human>> identified, int id);
+
+    void copyIdentified(Rect &rect, Ptr<Human> &human, ReidentificationData &data);
 };
 
 

@@ -25,6 +25,6 @@ View::View(char *fileName) {
 }
 
 int View::getNextId() {
-    return ++sNextId;
+    return sNextId++;
 }
 
