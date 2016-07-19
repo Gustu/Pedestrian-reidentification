@@ -97,7 +97,7 @@ public:
 
     void calcBeforeAfter(vector<Ptr<Human>> &identified);
 
-    bool isGlitch(Ptr<Human> &ptr, Ptr<Human> &ptr1, ReidentificationData &data);
+    bool isGlitch(Ptr<Human> &ptr, Ptr<Human> &ptr1);
 
     void stop(ReidentificationData &data);
 
@@ -116,6 +116,8 @@ public:
     int getIndexIfHumanExists(vector<Ptr<Human>> identified, int id);
 
     void copyIdentified(Rect &rect, Ptr<Human> &human, ReidentificationData &data);
+
+    bool isGlitch(Rect &rect1, Rect &rect2);
 };
 
 

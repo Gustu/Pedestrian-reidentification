@@ -4,7 +4,8 @@ CMakeCache.txt
 CMakeLists.txt
 cmake_install.cmake
 Makefile
-video
+video/*
 hog/*
 Reidentification
 hog2/*
+my_people_detector.yml

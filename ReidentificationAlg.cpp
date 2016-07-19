@@ -147,14 +147,14 @@ void ReidentificationAlg::applyAlgorithm(vector<View> &views) {
                     }
                     best = humanProposals[index];
                     if (it->id != index) {
-                        vector<Ptr<Human>>::iterator human_in_current_view;
-                        for(human_in_current_view = it->data.identified.begin(); human_in_current_view != it->data.identified.end(); human_in_current_view++) {
-                            if(human_in_current_view->get()->data.id == best->data.id) {
+                        vector<Ptr<Human>>::iterator humanInCurrentView;
+                        for(humanInCurrentView = it->data.identified.begin(); humanInCurrentView != it->data.identified.end(); humanInCurrentView++) {
+                            if(humanInCurrentView->get()->data.id == best->data.id) {
                                 break;
                             }
                         }
-                        if (human_in_current_view != it->data.identified.end()) {
-                            updateIdentified(trimmed, human, *human_in_current_view, it->data);
+                        if (humanInCurrentView != it->data.identified.end()) {
+                            updateIdentified(trimmed, human, *humanInCurrentView, it->data);
                         } else {
                             copyIdentified(trimmed, best, it->data);
                         }
@@ -188,7 +188,7 @@ Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, vect
         }
     }
 
-    if (bestHuman.empty()) {  // || isGlitch(human, bestHuman)
+    if (bestHuman.empty()) {
         return Ptr<Human>();
     }
     else {
@@ -196,7 +196,13 @@ Ptr<Human> ReidentificationAlg::getBestMatch(Ptr<Human> &human, Rect &rect, vect
     }
 }
 
-bool ReidentificationAlg::isGlitch(Ptr<Human> &human, Ptr<Human> &bestMatch, ReidentificationData &data) {
+bool ReidentificationAlg::isGlitch(Rect &rect1, Rect &rect2) {
+    double dist = sqrt(
+            (rect1.x - rect2.x) ^ 2 + (rect1.y - rect2.y) ^ 2);
+    return dist > (rect1.width + rect2.width)/2 ;
+}
+
+bool ReidentificationAlg::isGlitch(Ptr<Human> &human, Ptr<Human> &bestMatch) {
     double dist = sqrt(
             (human->data.point.x - bestMatch->data.point.x) ^ 2 + (human->data.point.y - bestMatch->data.point.y) ^ 2);
     return (bestMatch->data.move.x == 0 && bestMatch->data.move.y == 0) ?
@@ -227,29 +233,30 @@ void ReidentificationAlg::copyIdentified(Rect &rect, Ptr<Human> &human, Reidenti
 
 void ReidentificationAlg::updateIdentified(Rect &trimmed, Ptr<Human> &human,
                                            Ptr<Human> &best, ReidentificationData &data) {
-
-    best->data.opticalFlow.data.blocked = false;
-    best->data.boudingBox = trimmed;
-    best->data.lostTracking = false;
-    best->data.outOfWindow = false;
+    if(!isGlitch(trimmed, best->data.boudingBox)) {
+        best->data.opticalFlow.data.blocked = false;
+        best->data.boudingBox = trimmed;
+        best->data.lostTracking = false;
+        best->data.outOfWindow = false;
 //
 //    if (best->opticalFlow.points->empty()) {
 //        best->opticalFlow.getOpticalFlowPoints(trimmed, maskedGray);
 //    }
 
-    best->data.point = Point(trimmed.x + trimmed.width / 2, trimmed.y + trimmed.height / 2);
-    if (++best->data.histDescriptor.data.counter > HISTORY) {
-        best->data.histDescriptor = human->data.histDescriptor;
-        best->data.gaborDescriptor = human->data.gaborDescriptor;
-        best->data.histDescriptor.data.counter = 0;
-    }
+        best->data.point = Point(trimmed.x + trimmed.width / 2, trimmed.y + trimmed.height / 2);
+        if (++best->data.histDescriptor.data.counter > HISTORY) {
+            best->data.histDescriptor = human->data.histDescriptor;
+            best->data.gaborDescriptor = human->data.gaborDescriptor;
+            best->data.histDescriptor.data.counter = 0;
+        }
 
-    if (!best->data.opticalFlow.data.centroid.inside(best->data.boudingBox)) {
-        best->data.opticalFlow.getOpticalFlowPoints(best->data.boudingBox, data.maskedGray);
-    }
+        if (!best->data.opticalFlow.data.centroid.inside(best->data.boudingBox)) {
+            best->data.opticalFlow.getOpticalFlowPoints(best->data.boudingBox, data.maskedGray);
+        }
 
-    best->data.kalman.resetCounter();
-    best->data.kalman.update(trimmed);
+        best->data.kalman.resetCounter();
+        best->data.kalman.update(trimmed);
+    }
 }
 
 void ReidentificationAlg::drawing(ReidentificationData &data, String &winname) {
