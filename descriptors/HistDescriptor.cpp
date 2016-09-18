@@ -28,23 +28,24 @@ MatND HistDescriptor::getHistogram(const Mat &currentImage, const Rect &rect, co
     Mat img(currentImage, rect);
     Mat mask(m, rect);
     Mat hsv;
-    cvtColor(img, hsv, CV_BGR2HSV);
+    cvtColor(img, hsv, CV_BGR2XYZ);
 
     // Quantize the hue to 30 levels
     // and the saturation to 32 levels
-    int hbins = 20, sbins = 30;
-    int histSize[] = {hbins, sbins};
+    int xbins = 20, ybins = 30, zbins = 30;
+    int histSize[] = {xbins, ybins, zbins};
     // hue varies from 0 to 179, see cvtColor
-    float hranges[] = {0, 180};
+    float xRanges[] = {0, 256};
     // saturation varies from 0 (black-gray-white) to
     // 255 (pure spectrum color)
-    float sranges[] = {0, 256};
-    const float *ranges[] = {hranges, sranges};
+    float yRanges[] = {0, 256};
+    float zRanges[] = {0, 256};
+    const float *ranges[] = {xRanges, yRanges, zRanges};
     MatND hist;
     // we compute the histogram from the 0-th and 1-st channels
-    int channels[] = {0, 1};
+    int channels[] = {0, 1, 2};
 
-    calcHist(&hsv, 1, channels, mask, hist, 2, histSize, ranges, true, false);
+    calcHist(&hsv, 1, channels, mask, hist, 3, histSize, ranges, true, false);
     equalizeIntensity(hist);
     return hist;
 }
