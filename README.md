@@ -1,4 +1,4 @@
-# Pedestrian-reidentification
+# Pedestrian-reidentification by Bartłomiej Pasik
 OpenCV 3.0 pedestrian reidentification - Master's project
 
 For this moment, if you want to add video you need to **add file path in MultiView.h**. Sorry :(
